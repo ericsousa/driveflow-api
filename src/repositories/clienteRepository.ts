@@ -14,4 +14,34 @@ export class ClienteRepository {
         }
         return this.instance;
     }
+
+    public getClientes(): Cliente[] {
+        return this.clientes;
+    }
+
+    public getClienteById(id: number): Cliente | undefined {
+        return this.clientes.find(cliente => cliente.id_cliente === id);
+    }
+
+    public addCliente(cliente: Cliente): void {
+        this.clientes.push(cliente);
+    }
+
+    public updateCliente(id: number, updatedCliente: Cliente): boolean {
+        const index = this.clientes.findIndex(cliente => cliente.id_cliente === id);
+        if (index !== -1) {
+            this.clientes[index] = updatedCliente;
+            return true;
+        }
+        return false;
+    }
+
+    public deleteCliente(id: number): boolean {
+        const index = this.clientes.findIndex(cliente => cliente.id_cliente === id);
+        if (index !== -1) {
+            this.clientes.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
 }

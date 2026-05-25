@@ -1,5 +1,5 @@
-import { ClienteRepository } from '../repositories/clienteRepository';
 import { Cliente } from '../models/Cliente';
+import { ClienteRepository } from '../repositories/clienteRepository';
 
 export class ClienteService {
 

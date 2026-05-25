@@ -1,5 +1,5 @@
-import { VendedorRepository } from '../repositories/vendedorRepository';
 import { Vendedor } from '../models/Vendedor';
+import { VendedorRepository } from '../repositories/vendedorRepository';
 
 export class VendedorService {
 

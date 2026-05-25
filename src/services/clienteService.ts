@@ -62,9 +62,19 @@ export class ClienteService {
     private validarCpfDuplicado(cpf: string, id?: number): void {
         const clienteExistente = this.clienteRepository.getClientes().find(cliente => cliente.cpf === cpf);
 
-        // Se um cliente com o mesmo CPF já existir e 
-        // Se o id for fornecido, verifica se o cliente encontrado é diferente do cliente que estamos atualizando 
-        if (clienteExistente && (!id || clienteExistente.id_cliente !== id)) {
+        // Se não existe nenhum cliente com esse CPF, então não há duplicidade
+        if (!clienteExistente) {
+            return; 
+        }
+
+        // Na criação, o parâmetro id não é envido
+        // Então, se já existe um cliente com o mesmo CPF, é uma duplicidade
+        if (id === undefined) {
+            throw new Error('CPF já cadastrado');
+        }
+
+        // Na atualização, só há conflito se o CPF encontrado pertencer a outro cliente
+        if (clienteExistente.id_cliente !== id) {
             throw new Error('CPF já cadastrado');
         }
     }

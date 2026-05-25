@@ -6,6 +6,13 @@ import {
   atualizarCliente, 
   removerCliente
 } from './controllers/clienteController';
+import {
+  listarVendedores,
+  buscarVendedorPorId,
+  criarVendedor,
+  atualizarVendedor,
+  removerVendedor
+} from './controllers/vendedorController';
 
 
 const app = express();
@@ -21,6 +28,12 @@ app.get('/clientes/:id', buscarClientePorId);
 app.post('/clientes', criarCliente);
 app.put('/clientes/:id', atualizarCliente);
 app.delete('/clientes/:id', removerCliente);
+
+app.get('/vendedores', listarVendedores);
+app.get('/vendedores/:id', buscarVendedorPorId);
+app.post('/vendedores', criarVendedor);
+app.put('/vendedores/:id', atualizarVendedor);
+app.delete('/vendedores/:id', removerVendedor);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

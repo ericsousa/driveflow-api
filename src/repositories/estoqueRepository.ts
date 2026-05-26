@@ -14,4 +14,38 @@ export class EstoqueRepository {
         }
         return this.instance;
     }
+
+    public getEstoques(): Estoque[] {
+        return this.estoques;
+    }
+
+    public getEstoqueById(id: number): Estoque | undefined {
+        return this.estoques.find(estoque => estoque.id_estoque === id);
+    }
+
+    public getEstoquesByCarroId(id_carro: number): Estoque[] {
+        return this.estoques.filter(estoque => estoque.id_carro === id_carro);
+    }
+
+    public addEstoque(estoque: Estoque): void {
+        this.estoques.push(estoque);
+    }
+
+    public updateEstoque(id: number, updatedEstoque: Estoque): boolean {
+        const index = this.estoques.findIndex(estoque => estoque.id_estoque === id);
+        if (index !== -1) {
+            this.estoques[index] = updatedEstoque;
+            return true;
+        }
+        return false;
+    }
+
+    public deleteEstoque(id: number): boolean {
+        const index = this.estoques.findIndex(estoque => estoque.id_estoque === id);
+        if (index !== -1) {
+            this.estoques.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
 }

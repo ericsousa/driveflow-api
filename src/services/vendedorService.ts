@@ -1,9 +1,11 @@
 import { Vendedor } from '../models/Vendedor';
 import { VendedorRepository } from '../repositories/vendedorRepository';
+import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
 
 export class VendedorService {
 
     private vendedorRepository = VendedorRepository.getInstance(); // Get the singleton instance of VendedorRepository
+    private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
 
     private gerarNovoId(): number {
         const vendedores = this.vendedorRepository.getVendedores();
@@ -46,7 +48,17 @@ export class VendedorService {
 
     public removerVendedor(id: number) {
 
-        // --- verificar se vendedor possui notas fiscais associadas antes de permitir a exclusão
+        // verifica se vendedor existe antes de tentar excluir
+        const vendedorExistente = this.vendedorRepository.getVendedorById(id);
+        if (!vendedorExistente) {
+            throw new Error('Vendedor não encontrado');
+        }
+
+        // verificar se vendedor possui notas fiscais associadas antes de permitir a exclusão
+        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByVendedorId(id);
+        if (notasFiscaisAssociadas.length > 0) {
+            throw new Error('Não é possível excluir o vendedor, existem notas fiscais associadas a ele');
+        }
 
         return this.vendedorRepository.deleteVendedor(id);
     }

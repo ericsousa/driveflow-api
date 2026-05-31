@@ -1,9 +1,11 @@
 import { Cliente } from '../models/Cliente';
 import { ClienteRepository } from '../repositories/clienteRepository';
+import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
 
 export class ClienteService {
 
     private clienteRepository = ClienteRepository.getInstance(); // Get the singleton instance of ClienteRepository
+    private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
 
     private gerarNovoId(): number {
         const clientes = this.clienteRepository.getClientes();
@@ -48,7 +50,17 @@ export class ClienteService {
 
     public removerCliente(id: number) {
 
-        // ---- Verificar se cliente possui notas fiscais associadas antes de permitir a exclusão
+        // verifica se cliente existe antes de tentar excluir
+        const clienteExistente = this.clienteRepository.getClienteById(id);
+        if (!clienteExistente) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        // verificar se cliente possui notas fiscais associadas antes de permitir a exclusão
+        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByClienteId(id);
+        if (notasFiscaisAssociadas.length > 0) {
+            throw new Error('Não é possível excluir o cliente, existem notas fiscais associadas a ele');
+        }
 
         return this.clienteRepository.deleteCliente(id);
     }

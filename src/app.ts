@@ -66,7 +66,7 @@ app.put('/carros/:id', atualizarCarro);
 app.delete('/carros/:id', removerCarro);
 
 app.get('/estoque', listarEstoque);
-app.get('/estoque/carro/:id_carro', listarEstoquePorCarroId); // deve vir antes da rota de buscar estoque por ID  
+app.get('/estoque/carro/:id_carro', listarEstoquePorCarroId); 
 app.get('/estoque/:id', buscarEstoquePorId);
 app.post('/estoque', criarEstoque);
 app.put('/estoque/:id', atualizarEstoque);

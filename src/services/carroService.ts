@@ -1,9 +1,13 @@
 import { Carro } from '../models/Carro';
 import { CarroRepository } from '../repositories/carroRepository';
+import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
+import { EstoqueRepository } from '../repositories/estoqueRepository';
 
 export class CarroService {
 
     private carroRepository = CarroRepository.getInstance(); // Get the singleton instance of CarroRepository
+    private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
+    private estoqueRepository = EstoqueRepository.getInstance(); // Get the singleton instance of EstoqueRepository
 
     private gerarNovoId(): number {
         const carros = this.carroRepository.getCarros();
@@ -48,7 +52,23 @@ export class CarroService {
 
     public removerCarro(id: number) {
 
-        // --- verificar se carro possui notas fiscais associadas antes de permitir a exclusão
+        // verifica se carro existe antes de tentar excluir
+        const carroExistente = this.carroRepository.getCarroById(id);
+        if (!carroExistente) {
+            throw new Error('Carro não encontrado');
+        }
+
+        // verificar se carro possui notas fiscais associadas antes de permitir a exclusão
+        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByCarroId(id);
+        if (notasFiscaisAssociadas.length > 0) {
+            throw new Error('Não é possível excluir o carro, existem notas fiscais associadas a ele');
+        }
+
+        // verifica se carro possui estoque associado antes de permitir a exclusão
+        const estoquesAssociados = this.estoqueRepository.getEstoquesByCarroId(id);
+        if (estoquesAssociados.length > 0) {
+            throw new Error('Não é possível excluir o carro, existem estoques associados a ele');
+        }
 
         return this.carroRepository.deleteCarro(id);
     }

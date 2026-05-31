@@ -40,6 +40,19 @@ export class EstoqueRepository {
         return false;
     }
 
+    public baixaEstoque(id_carro: number): boolean {
+
+        // Mitigaçao de risco:
+        // Vericação de quantidade de estoque antes de dar baixa, para evitar que o estoque fique negativo
+        // Verificações de estoque ainda devem ser feitas antes de chamar esse método
+        const index = this.estoques.findIndex(estoque => estoque.id_carro === id_carro && estoque.quantidade > 0);
+        if (index !== -1) {
+            this.estoques[index].quantidade -= 1;
+            return true;
+        }
+        return false;
+    }
+
     public deleteEstoque(id: number): boolean {
         const index = this.estoques.findIndex(estoque => estoque.id_estoque === id);
         if (index !== -1) {

@@ -22,6 +22,11 @@ export function buscarCarroPorId(req: Request, res: Response) {
     res.json(carro);
 }
 
+export function buscarCarrosDisponiveis(req: Request, res: Response) {
+    const carrosDisponiveis = carroService.buscarCarrosDisponiveis();
+    res.json(carrosDisponiveis);
+}
+
 export function criarCarro(req: Request, res: Response) {
     const data = req.body;
     try {
@@ -79,6 +84,3 @@ export function removerCarro(req: Request, res: Response) {
         res.status(400).json({ error: message });
     }
 }
-
-
-// --- Implementar carros diponíveis

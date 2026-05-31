@@ -19,6 +19,7 @@ import {
 import {
   listarCarros,
   buscarCarroPorId,
+  buscarCarrosDisponiveis,
   criarCarro,
   atualizarCarro,
   removerCarro
@@ -60,6 +61,7 @@ app.put('/vendedores/:id', atualizarVendedor);
 app.delete('/vendedores/:id', removerVendedor);
 
 app.get('/carros', listarCarros);
+app.get('/carros/disponiveis', buscarCarrosDisponiveis);
 app.get('/carros/:id', buscarCarroPorId);
 app.post('/carros', criarCarro);
 app.put('/carros/:id', atualizarCarro);

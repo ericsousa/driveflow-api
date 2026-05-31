@@ -29,6 +29,21 @@ export class CarroService {
         return this.carroRepository.getCarroById(id);
     }
 
+    public buscarCarrosDisponiveis() {
+        const estoques = this.estoqueRepository.getEstoques();                      // busca todo estoque
+        const carrosDisponiveis: Carro[] = [];
+        
+        estoques.forEach(estoque => {                                               // percorre o estoque 
+            if (estoque.quantidade > 0) {                                           // verifica se carro possuir estoque
+                const carro = this.carroRepository.getCarroById(estoque.id_carro);
+                if (carro) {                                                        // se carro existir
+                    carrosDisponiveis.push(carro);                                  // adiciona na lista de carros disponíveis
+                }
+            }
+        });
+        return carrosDisponiveis;
+    }
+
     public criarCarro(data: any) {
         this.validaCamposObrigatorios(data);
         this.validaPlaca(data.placa);

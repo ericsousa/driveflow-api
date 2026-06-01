@@ -23,6 +23,25 @@ export function buscarVendedorPorId(req: Request, res: Response) {
     res.json(vendedor);
 }
 
+export function listarNotasFiscaisPorVendedor(req: Request, res: Response) {
+    const id = parseInt(String(req.params.id));
+    if (isNaN(id)) {
+        res.status(400).json({ error: 'ID inválido' });
+        return;
+    }
+    try {
+        const notasFiscais = vendedorService.listarNotasFiscaisPorVendedorId(id);
+        res.json(notasFiscais);
+    } catch (e: unknown) {
+        const message = (e as Error).message;
+        if (message === 'Vendedor não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
+        res.status(400).json({ error: (e as Error).message });
+    }
+}
+
 export function criarVendedor(req: Request, res: Response) {
     const data = req.body;
     try {

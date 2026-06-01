@@ -3,6 +3,7 @@ import express, {Request, Response} from 'express';
 import { 
   listarClientes, 
   buscarClientePorId, 
+  listarNotasFiscaisPorCliente,
   criarCliente, 
   atualizarCliente, 
   removerCliente
@@ -11,6 +12,7 @@ import {
 import {
   listarVendedores,
   buscarVendedorPorId,
+  listarNotasFiscaisPorVendedor,
   criarVendedor,
   atualizarVendedor,
   removerVendedor
@@ -34,7 +36,7 @@ import {
   removerEstoque
 } from './controllers/estoqueController';
 
-import {
+import {  
   listarNotasFiscais,
   buscarNotaFiscalPorId,
   criarNotaFiscal
@@ -49,12 +51,14 @@ app.get('/', (req: Request, res: Response): void => {
 });
 
 app.get('/clientes', listarClientes);
+app.get('/clientes/notas/:id', listarNotasFiscaisPorCliente);
 app.get('/clientes/:id', buscarClientePorId);
 app.post('/clientes', criarCliente);
 app.put('/clientes/:id', atualizarCliente);
 app.delete('/clientes/:id', removerCliente);
 
 app.get('/vendedores', listarVendedores);
+app.get('/vendedores/notas/:id', listarNotasFiscaisPorVendedor);
 app.get('/vendedores/:id', buscarVendedorPorId);
 app.post('/vendedores', criarVendedor);
 app.put('/vendedores/:id', atualizarVendedor);
@@ -68,7 +72,7 @@ app.put('/carros/:id', atualizarCarro);
 app.delete('/carros/:id', removerCarro);
 
 app.get('/estoque', listarEstoque);
-app.get('/estoque/carro/:id_carro', listarEstoquePorCarroId); 
+app.get('/estoque/carro/:id_carro', listarEstoquePorCarroId);  
 app.get('/estoque/:id', buscarEstoquePorId);
 app.post('/estoque', criarEstoque);
 app.put('/estoque/:id', atualizarEstoque);

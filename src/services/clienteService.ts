@@ -27,6 +27,14 @@ export class ClienteService {
         return this.clienteRepository.getClienteById(id);
     }
 
+    public listarNotasFiscaisPorClienteId(id_cliente: number) {
+        const clienteExistente = this.clienteRepository.getClienteById(id_cliente);
+        if (!clienteExistente) {
+            throw new Error('Cliente não encontrado');
+        }
+        return this.notaFiscalRepository.getNotasFiscaisByClienteId(id_cliente);
+    }
+
     public criarCliente(data: any) {
 
         this.validarCamposObrigatorios(data);

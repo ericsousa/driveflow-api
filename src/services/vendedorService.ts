@@ -27,6 +27,15 @@ export class VendedorService {
         return this.vendedorRepository.getVendedorById(id);
     }
 
+    public listarNotasFiscaisPorVendedorId(id_vendedor: number) {
+        const vendedorExistente = this.vendedorRepository.getVendedorById(id_vendedor);
+        if (!vendedorExistente) {
+            throw new Error('Vendedor não encontrado');
+        }
+        return this.notaFiscalRepository.getNotasFiscaisByVendedorId(id_vendedor);
+    }
+
+
     public criarVendedor(data: any) {
         this.validaCamposObrigatorios(data);
         this.validaMatricula(data.matricula);

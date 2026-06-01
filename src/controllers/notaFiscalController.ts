@@ -32,12 +32,16 @@ export function criarNotaFiscal(req: Request, res: Response) {
         if (message === 'Cliente relacionado à nota fiscal não encontrado.' ||
             message === 'Vendedor relacionado à nota fiscal não encontrado.' ||
             message === 'Carro relacionado à nota fiscal não encontrado.' ||
-            message === 'Carro não encontrado em estoque.' ||
-            message === 'Carro sem estoque disponível para venda.'
+            message === 'Carro não encontrado em estoque.'
         ) {
             res.status(404).json({ error: message });
             return;
         }
+        if (message === 'Carro sem estoque disponível para venda.') {
+            res.status(422).json({ error: message });
+            return;
+        }
+
         res.status(400).json({ error: message });
     }   
 }

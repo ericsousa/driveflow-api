@@ -101,7 +101,15 @@ export function removerCliente(req: Request, res: Response): void {
             res.status(404).json({ error: 'Cliente não encontrado' });
         }
     } catch (e: unknown) {
-        res.status(400).json({ error: (e as Error).message });
+
+        const message = (e as Error).message;
+
+        if (message === 'Não é possível excluir o cliente, existem notas fiscais associadas a ele') {
+            res.status(422).json({ error: (e as Error).message });
+            return;
+        }
+
+        res.status(400).json({error: message });
     }
 }
 

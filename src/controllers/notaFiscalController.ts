@@ -41,6 +41,10 @@ export function criarNotaFiscal(req: Request, res: Response) {
             res.status(422).json({ error: message });
             return;
         }
+        if (message === 'Número da nota fiscal já existe. Deve ser único.') {
+            res.status(409).json({ error: message });
+            return;
+        }
 
         res.status(400).json({ error: message });
     }   

@@ -60,7 +60,7 @@ export function criarEstoque(req: Request, res: Response) {
             return;
         }
         if (message === 'Já existe estoque para este carro') {
-            res.status(422).json({ error: message });
+            res.status(400).json({ error: message });
             return;
         }
         res.status(400).json({ error: message });

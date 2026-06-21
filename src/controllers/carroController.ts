@@ -81,6 +81,10 @@ export function removerCarro(req: Request, res: Response) {
         }
     } catch (error) {
         const message = (error as Error).message;
+        if (message === 'Não é possível excluir o carro, existem notas fiscais associadas a ele') {
+            res.status(422).json({ error: message });
+            return;
+         }
         res.status(400).json({ error: message });
     }
 }

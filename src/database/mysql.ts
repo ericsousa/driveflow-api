@@ -1,4 +1,9 @@
 import mysql, { Connection, QueryError} from 'mysql2';
+import { ClienteRepository } from '../repositories/clienteRepository';
+import { VendedorRepository } from '../repositories/vendedorRepository';
+import { CarroRepository } from '../repositories/carroRepository';
+import { EstoqueRepository } from '../repositories/estoqueRepository';
+import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
 
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -35,7 +40,11 @@ export async function setupDatabase(): Promise<void> {
     console.log('Sincronizando schemas do banco de dados...');
 
     const schemas: string[] = [
-        //... add create table statements from the repositories
+        ClienteRepository.getCreateTableQuery(),
+        VendedorRepository.getCreateTableQuery(),
+        CarroRepository.getCreateTableQuery(),
+        EstoqueRepository.getCreateTableQuery(),
+        NotaFiscalRepository.getCreateTableQuery()
     ];
 
     try {

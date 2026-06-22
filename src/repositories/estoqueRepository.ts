@@ -15,6 +15,19 @@ export class EstoqueRepository {
         return this.instance;
     }
 
+        static getCreateTableQuery(): string {
+        return `
+            CREATE TABLE IF NOT EXISTS estoques (
+                id_estoque INT AUTO_INCREMENT PRIMARY KEY,
+                id_carro INT NOT NULL,
+                quantidade INT NOT NULL,
+                localizacao_patio VARCHAR(255) NOT NULL,
+                data_entrada DATE NOT NULL,
+                FOREIGN KEY (id_carro) REFERENCES carros(id_carro)
+            );
+        `;
+    }
+
     public getEstoques(): Estoque[] {
         return this.estoques;
     }

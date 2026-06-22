@@ -15,6 +15,20 @@ export class CarroRepository {
         return this.instance;
     }
 
+        static getCreateTableQuery(): string {
+        return `
+            CREATE TABLE IF NOT EXISTS carros (
+                id_carro INT AUTO_INCREMENT PRIMARY KEY,
+                marca VARCHAR(100) NOT NULL,
+                modelo VARCHAR(100) NOT NULL,
+                ano INT NOT NULL,
+                placa VARCHAR(20) NOT NULL UNIQUE,
+                preco DECIMAL(10, 2) NOT NULL,
+                cor VARCHAR(30) NOT NULL
+            );
+        `;
+    }
+
     public getCarros(): Carro[] {
         return this.carros;
     }

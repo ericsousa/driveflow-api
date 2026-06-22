@@ -15,6 +15,19 @@ export class ClienteRepository {
         return this.instance;
     }
 
+    static getCreateTableQuery(): string {
+        return `
+            CREATE TABLE IF NOT EXISTS clientes (
+                id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+                nome VARCHAR(150) NOT NULL,
+                cpf VARCHAR(14) NOT NULL UNIQUE,
+                telefone VARCHAR(20) NOT NULL,
+                email VARCHAR(50),
+                cidade VARCHAR(50)
+            );
+        `;
+    }
+
     public getClientes(): Cliente[] {
         return this.clientes;
     }

@@ -1,4 +1,5 @@
 import { Cliente } from '../models/Cliente';
+import { NotaFiscal } from '../models/NotaFiscal';
 import { ClienteRepository } from '../repositories/clienteRepository';
 import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
 
@@ -7,70 +8,63 @@ export class ClienteService {
     private clienteRepository = ClienteRepository.getInstance(); // Get the singleton instance of ClienteRepository
     private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
 
-    private gerarNovoId(): number {
-        const clientes = this.clienteRepository.getClientes();
-        if (clientes.length === 0) {
-            return 1; 
-        }
-        // map: percorre o array de clientes e extrai os id_cliente para uma array
-        // ...: operador spread, espalha array em elementos individuais (1, 3, 5)
-        // Math.max: encontra o maior valor 
-        const maiorId = Math.max(...clientes.map(cliente => cliente.id_cliente));
-        return maiorId + 1;
-    }
-
-    public listarClientes() {
+    public async listarClientes(): Promise<Cliente[]> {
         return this.clienteRepository.getClientes();
     }
 
-    public buscarClientePorId(id: number) {
+    public async buscarClientePorId(id: number): Promise<Cliente | null> {
         return this.clienteRepository.getClienteById(id);
     }
 
-    public listarNotasFiscaisPorClienteId(id_cliente: number) {
-        const clienteExistente = this.clienteRepository.getClienteById(id_cliente);
+    public async listarNotasFiscaisPorClienteId(id_cliente: number): Promise<NotaFiscal[]> {
+        const clienteExistente = await this.clienteRepository.getClienteById(id_cliente);
         if (!clienteExistente) {
             throw new Error('Cliente não encontrado');
         }
         return this.notaFiscalRepository.getNotasFiscaisByClienteId(id_cliente);
     }
 
-    public criarCliente(data: any) {
+    public async criarCliente(data: any): Promise<Cliente> {
 
         this.validarCamposObrigatorios(data);
-        this.validarCpfDuplicado(data.cpf);
+        await this.validarCpfDuplicado(data.cpf);
 
-        const id_cliente = this.gerarNovoId();
-        const cliente = new Cliente(id_cliente, data.nome, data.cpf, data.telefone, data.email, data.cidade);
-
-        this.clienteRepository.addCliente(cliente);
+        const cliente = new Cliente(null, data.nome, data.cpf, data.telefone, data.email, data.cidade);
+        return await this.clienteRepository.addCliente(cliente);
     }
 
-    public atualizarCliente(id: number, data: any) {
+    public async atualizarCliente(id: number, data: any): Promise<Cliente | null> {
 
         this.validarCamposObrigatorios(data);
-        this.validarCpfDuplicado(data.cpf, id);
+        await this.validarCpfDuplicado(data.cpf, id);
+
+        // Verifica se o cliente existe antes de tentar atualizar
+        const clienteExistente = await this.clienteRepository.getClienteById(id);
+        if (!clienteExistente) {
+            return null;
+        }
 
         const cliente = new Cliente(id, data.nome, data.cpf, data.telefone, data.email, data.cidade);
-
-        return this.clienteRepository.updateCliente(id, cliente);
+        await this.clienteRepository.updateCliente(id, cliente);
+        return cliente;
     }
 
-    public removerCliente(id: number) {
+    public async removerCliente(id: number): Promise<Cliente | null> {
 
         // verifica se cliente existe antes de tentar excluir
-        const clienteExistente = this.clienteRepository.getClienteById(id);
+        const clienteExistente = await this.clienteRepository.getClienteById(id);
         if (!clienteExistente) {
-            throw new Error('Cliente não encontrado');
+            return null;
         }
 
         // verificar se cliente possui notas fiscais associadas antes de permitir a exclusão
-        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByClienteId(id);
+        const notasFiscaisAssociadas = await this.notaFiscalRepository.getNotasFiscaisByClienteId(id);
         if (notasFiscaisAssociadas.length > 0) {
             throw new Error('Não é possível excluir o cliente, existem notas fiscais associadas a ele');
         }
 
-        return this.clienteRepository.deleteCliente(id);
+        await this.clienteRepository.deleteCliente(id);
+        return clienteExistente;
     }
 
     private validarCamposObrigatorios(cliente: any): void {
@@ -79,8 +73,11 @@ export class ClienteService {
         }
     }
 
-    private validarCpfDuplicado(cpf: string, id?: number): void {
-        const clienteExistente = this.clienteRepository.getClientes().find(cliente => cliente.cpf === cpf);
+    private async validarCpfDuplicado(cpf: string, id?: number): Promise<void> {
+
+        // Parentese server para indicar ordem de precedência, garantindo que a
+        // função getClientes() seja chamada e resolvida antes do método find()
+        const clienteExistente = (await this.clienteRepository.getClientes()).find(cliente => cliente.cpf === cpf);
 
         // Se não existe nenhum cliente com esse CPF, então não há duplicidade
         if (!clienteExistente) {

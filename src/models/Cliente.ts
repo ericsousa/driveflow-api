@@ -1,12 +1,12 @@
 export class Cliente {
-    id_cliente: number;
+    id_cliente: number | null;
     nome: string;
     cpf: string;
     telefone: string;
     email?: string;
     cidade?: string;
 
-    constructor(id_cliente: number, nome: string, cpf: string, telefone: string, email?: string, cidade?: string) {
+    constructor(id_cliente: number | null, nome: string, cpf: string, telefone: string, email?: string, cidade?: string) {
         this.id_cliente = id_cliente;
         this.nome = nome;
         this.cpf = cpf;

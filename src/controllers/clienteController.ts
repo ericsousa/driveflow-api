@@ -3,12 +3,12 @@ import { ClienteService } from '../services/clienteService';
 
 const clienteService = new ClienteService();
 
-export function listarClientes(req: Request, res: Response): void {
-    const clientes = clienteService.listarClientes();
+export async function listarClientes(req: Request, res: Response): Promise<void> {
+    const clientes = await clienteService.listarClientes();
     res.json(clientes);
 }
 
-export function buscarClientePorId(req: Request, res: Response): void {
+export async function buscarClientePorId(req: Request, res: Response): Promise<void> {
     
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
@@ -16,7 +16,7 @@ export function buscarClientePorId(req: Request, res: Response): void {
         return;
     }
 
-    const cliente = clienteService.buscarClientePorId(id);
+    const cliente = await clienteService.buscarClientePorId(id);
 
     if (!cliente) {
         res.status(404).json({ error: 'Cliente não encontrado' });
@@ -25,14 +25,14 @@ export function buscarClientePorId(req: Request, res: Response): void {
     res.json(cliente);
 }
 
-export function listarNotasFiscaisPorCliente(req: Request, res: Response): void {
+export async function listarNotasFiscaisPorCliente(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
     try {
-        const notasFiscais = clienteService.listarNotasFiscaisPorClienteId(id);
+        const notasFiscais = await clienteService.listarNotasFiscaisPorClienteId(id);
         res.json(notasFiscais);
     } catch (e: unknown) {
         const message = (e as Error).message;
@@ -44,11 +44,11 @@ export function listarNotasFiscaisPorCliente(req: Request, res: Response): void 
     }
 }
 
-export function criarCliente(req: Request, res: Response): void {
+export async function criarCliente(req: Request, res: Response): Promise<void> {
     const cliente = req.body;
     try {
-        clienteService.criarCliente(cliente);
-        res.status(201).json({ message: 'Cliente criado com sucesso' });
+        const clienteCriado = await clienteService.criarCliente(cliente);
+        res.status(201).json(clienteCriado);
     } catch (e: unknown) {
         const message = (e as Error).message;   
         if (message === 'CPF já cadastrado') {
@@ -59,7 +59,7 @@ export function criarCliente(req: Request, res: Response): void {
     }
 }
 
-export function atualizarCliente(req: Request, res: Response): void {
+export async function atualizarCliente(req: Request, res: Response): Promise<void> {
 
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
@@ -69,9 +69,9 @@ export function atualizarCliente(req: Request, res: Response): void {
 
     const updatedCliente = req.body;    
     try {
-        const sucesso = clienteService.atualizarCliente(id, updatedCliente);
-        if (sucesso) {
-            res.json({ message: 'Cliente atualizado com sucesso' });
+        const clienteAtualizado = await clienteService.atualizarCliente(id, updatedCliente);
+        if (clienteAtualizado) {
+            res.json(clienteAtualizado);
         } else {
             res.status(404).json({ error: 'Cliente não encontrado' });
         }
@@ -85,7 +85,7 @@ export function atualizarCliente(req: Request, res: Response): void {
     }
 }
 
-export function removerCliente(req: Request, res: Response): void {
+export async function removerCliente(req: Request, res: Response): Promise<void> {
 
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
@@ -94,9 +94,9 @@ export function removerCliente(req: Request, res: Response): void {
     }
 
     try {
-        const sucesso = clienteService.removerCliente(id);
-        if (sucesso) {
-            res.json({ message: 'Cliente removido com sucesso' });
+        const clienteRemovido = await clienteService.removerCliente(id);
+        if (clienteRemovido) {
+            res.json(clienteRemovido);
         } else {
             res.status(404).json({ error: 'Cliente não encontrado' });
         }

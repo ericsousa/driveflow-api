@@ -1,4 +1,5 @@
 import { Vendedor } from '../models/Vendedor';
+import { NotaFiscal } from '../models/NotaFiscal';
 import { VendedorRepository } from '../repositories/vendedorRepository';
 import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
 
@@ -7,28 +8,16 @@ export class VendedorService {
     private vendedorRepository = VendedorRepository.getInstance(); // Get the singleton instance of VendedorRepository
     private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
 
-    private gerarNovoId(): number {
-        const vendedores = this.vendedorRepository.getVendedores();
-        if (vendedores.length === 0) {
-            return 1; 
-        } 
-        // map: percorre o array de clientes e extrai os id_cliente para uma array
-        // ...: operador spread, espalha array em elementos individuais (1, 3, 5)
-        // Math.max: encontra o maior valor 
-        const maiorId = Math.max(...vendedores.map(vendedor => vendedor.id_vendedor));
-        return maiorId + 1;
-    }
-
-    public listarVendedores() {
+    public async listarVendedores(): Promise<Vendedor[]> {
         return this.vendedorRepository.getVendedores();
     }
 
-    public buscarVendedorPorId(id: number) {
+    public async buscarVendedorPorId(id: number): Promise<Vendedor | null> {
         return this.vendedorRepository.getVendedorById(id);
     }
 
-    public listarNotasFiscaisPorVendedorId(id_vendedor: number) {
-        const vendedorExistente = this.vendedorRepository.getVendedorById(id_vendedor);
+    public async listarNotasFiscaisPorVendedorId(id_vendedor: number): Promise<NotaFiscal[]> {
+        const vendedorExistente = await this.vendedorRepository.getVendedorById(id_vendedor);
         if (!vendedorExistente) {
             throw new Error('Vendedor não encontrado');
         }
@@ -36,40 +25,48 @@ export class VendedorService {
     }
 
 
-    public criarVendedor(data: any) {
+    public async criarVendedor(data: any): Promise<Vendedor> {
         this.validaCamposObrigatorios(data);
-        this.validaMatricula(data.matricula);
+        await this.validaMatricula(data.matricula);
         this.validaComissao(data.comissao_percentual);
 
-        const id_vendedor = this.gerarNovoId();
-        const vendedor = new Vendedor(id_vendedor, data.nome, data.matricula, data.comissao_percentual);
-        this.vendedorRepository.addVendedor(vendedor);
+        const vendedor = new Vendedor(null, data.nome, data.matricula, data.comissao_percentual);
+        return this.vendedorRepository.addVendedor(vendedor);
     }
 
-    public atualizarVendedor(id: number, data: any) {
+    public async atualizarVendedor(id: number, data: any): Promise<Vendedor | null> {
+       
         this.validaCamposObrigatorios(data);
-        this.validaMatricula(data.matricula, id);
+        await this.validaMatricula(data.matricula, id);
         this.validaComissao(data.comissao_percentual);
+
+        // Verifica se o vendedor existe antes de tentar atualizar
+        const vendedorExistente = await this.vendedorRepository.getVendedorById(id);
+        if (!vendedorExistente) {
+            return null;
+        }
 
         const vendedor = new Vendedor(id, data.nome, data.matricula, data.comissao_percentual);
-        return this.vendedorRepository.updateVendedor(id, vendedor);
+        await this.vendedorRepository.updateVendedor(id, vendedor);
+        return vendedor;
     }
 
-    public removerVendedor(id: number) {
+    public async removerVendedor(id: number): Promise<Vendedor | null> {
 
         // verifica se vendedor existe antes de tentar excluir
-        const vendedorExistente = this.vendedorRepository.getVendedorById(id);
+        const vendedorExistente = await this.vendedorRepository.getVendedorById(id);
         if (!vendedorExistente) {
-            throw new Error('Vendedor não encontrado');
+           return null;
         }
 
         // verificar se vendedor possui notas fiscais associadas antes de permitir a exclusão
-        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByVendedorId(id);
+        const notasFiscaisAssociadas = await this.notaFiscalRepository.getNotasFiscaisByVendedorId(id);
         if (notasFiscaisAssociadas.length > 0) {
             throw new Error('Não é possível excluir o vendedor, existem notas fiscais associadas a ele');
         }
 
-        return this.vendedorRepository.deleteVendedor(id);
+        await this.vendedorRepository.deleteVendedor(id);
+        return vendedorExistente;
     }
 
     private validaCamposObrigatorios(data: any): void {
@@ -91,8 +88,8 @@ export class VendedorService {
         }
     }
 
-    private validaMatricula(matricula: string, id?: number): void {
-        const vendedorExistente = this.vendedorRepository.getVendedores().find(v => v.matricula === matricula);
+    private async validaMatricula(matricula: string, id?: number): Promise<void> {
+        const vendedorExistente = (await this.vendedorRepository.getVendedores()).find(v => v.matricula === matricula);
 
         // Se não existe matricula igual, então é valida
         if (!vendedorExistente) {

@@ -3,19 +3,19 @@ import { Request, Response } from 'express';
 
 const vendedorService = new VendedorService();
 
-export function listarVendedores(req: Request, res: Response) {
-    const vendedores = vendedorService.listarVendedores();
+export async function listarVendedores(req: Request, res: Response): Promise<void> {
+    const vendedores = await vendedorService.listarVendedores();
     res.json(vendedores);
 }
 
-export function buscarVendedorPorId(req: Request, res: Response) {
+export async function buscarVendedorPorId(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
 
-    const vendedor = vendedorService.buscarVendedorPorId(id);
+    const vendedor = await vendedorService.buscarVendedorPorId(id);
     if (!vendedor) {
         res.status(404).json({ error: 'Vendedor não encontrado' });
         return;
@@ -23,14 +23,14 @@ export function buscarVendedorPorId(req: Request, res: Response) {
     res.json(vendedor);
 }
 
-export function listarNotasFiscaisPorVendedor(req: Request, res: Response) {
+export async function listarNotasFiscaisPorVendedor(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
     try {
-        const notasFiscais = vendedorService.listarNotasFiscaisPorVendedorId(id);
+        const notasFiscais = await vendedorService.listarNotasFiscaisPorVendedorId(id);
         res.json(notasFiscais);
     } catch (e: unknown) {
         const message = (e as Error).message;
@@ -42,11 +42,11 @@ export function listarNotasFiscaisPorVendedor(req: Request, res: Response) {
     }
 }
 
-export function criarVendedor(req: Request, res: Response) {
+export async function criarVendedor(req: Request, res: Response): Promise<void> {
     const data = req.body;
     try {
-        vendedorService.criarVendedor(data);
-        res.status(201).json({ message: 'Vendedor criado com sucesso' });
+        const vendedorCriado = await vendedorService.criarVendedor(data);
+        res.status(201).json(vendedorCriado);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Matrícula já existe') {
@@ -59,7 +59,7 @@ export function criarVendedor(req: Request, res: Response) {
     }
 }
 
-export function atualizarVendedor(req: Request, res: Response) {
+export async function atualizarVendedor(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -67,9 +67,9 @@ export function atualizarVendedor(req: Request, res: Response) {
     }
     const data = req.body;
     try {
-        const sucesso = vendedorService.atualizarVendedor(id, data);
-        if (sucesso) {
-            res.json({ message: 'Vendedor atualizado com sucesso' });
+        const vendedorAtualizado = await vendedorService.atualizarVendedor(id, data);
+        if (vendedorAtualizado) {
+            res.json(vendedorAtualizado);
         } else {
             res.status(404).json({ error: 'Vendedor não encontrado' });
         }
@@ -83,7 +83,7 @@ export function atualizarVendedor(req: Request, res: Response) {
     }
 }
 
-export function removerVendedor(req: Request, res: Response) {
+export async function removerVendedor(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -91,9 +91,9 @@ export function removerVendedor(req: Request, res: Response) {
     }
 
     try {
-        const sucesso = vendedorService.removerVendedor(id);
-        if (sucesso) {
-            res.json({ message: 'Vendedor removido com sucesso' });
+        const vendedorRemovido = await vendedorService.removerVendedor(id);
+        if (vendedorRemovido) {
+            res.json(vendedorRemovido);
         } else {
             res.status(404).json({ error: 'Vendedor não encontrado' });
         }

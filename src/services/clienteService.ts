@@ -30,7 +30,7 @@ export class ClienteService {
         await this.validarCpfDuplicado(data.cpf);
 
         const cliente = new Cliente(null, data.nome, data.cpf, data.telefone, data.email, data.cidade);
-        return await this.clienteRepository.addCliente(cliente);
+        return this.clienteRepository.addCliente(cliente);
     }
 
     public async atualizarCliente(id: number, data: any): Promise<Cliente | null> {

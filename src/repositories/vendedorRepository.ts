@@ -1,9 +1,9 @@
 import { Vendedor } from '../models/Vendedor';
+import { executeQuery } from '../database/mysql';
 
 export class VendedorRepository {
 
     private static instance: VendedorRepository; // Singleton instance, only accessible through getInstance()
-    private vendedores: Vendedor[] = []; // In-memory storage for Vendedor instances
 
     private constructor() {} // Private constructor to prevent direct instantiation
 
@@ -26,33 +26,47 @@ export class VendedorRepository {
         `;
     }
 
-    public getVendedores(): Vendedor[] {
-        return this.vendedores;
+    public async getVendedores(): Promise<Vendedor[]> {
+        const linhas = await executeQuery('SELECT * FROM vendedores', []);
+        return linhas.map((linha: any) => new Vendedor(
+            linha.id_vendedor,
+            linha.nome,
+            linha.matricula,
+            Number(linha.comissao_percentual)
+        ));
     }
 
-    public getVendedorById(id: number): Vendedor | undefined {
-        return this.vendedores.find(vendedor => vendedor.id_vendedor === id);
-    }
-
-    public addVendedor(vendedor: Vendedor): void {
-        this.vendedores.push(vendedor);
-    }
-
-    public updateVendedor(id: number, updatedVendedor: Vendedor): boolean {
-        const index = this.vendedores.findIndex(vendedor => vendedor.id_vendedor === id);
-        if (index !== -1) {
-            this.vendedores[index] = updatedVendedor;
-            return true;
+    public async getVendedorById(id: number): Promise<Vendedor | null> {
+        const linhas = await executeQuery('SELECT * FROM vendedores WHERE id_vendedor = ?', [id]);
+        if (linhas.length === 0) {
+            return null;
         }
-        return false;
+        return new Vendedor(
+            linhas[0].id_vendedor,
+            linhas[0].nome,
+            linhas[0].matricula,
+            Number(linhas[0].comissao_percentual)
+        );
     }
 
-    public deleteVendedor(id: number): boolean {
-        const index = this.vendedores.findIndex(vendedor => vendedor.id_vendedor === id);
-        if (index !== -1) {
-            this.vendedores.splice(index, 1);
-            return true;
-        }
-        return false;
+    public async addVendedor(vendedor: Vendedor): Promise<Vendedor> {
+        const result = await executeQuery(
+            'INSERT INTO vendedores (nome, matricula, comissao_percentual) VALUES (?, ?, ?)',
+            [vendedor.nome, vendedor.matricula, vendedor.comissao_percentual]
+        );
+        return new Vendedor(result.insertId, vendedor.nome, vendedor.matricula, vendedor.comissao_percentual);
+    }
+
+    public async updateVendedor(id: number, updatedVendedor: Vendedor): Promise<boolean> {
+        const result = await executeQuery(
+            'UPDATE vendedores SET nome = ?, matricula = ?, comissao_percentual = ? WHERE id_vendedor = ?',
+            [updatedVendedor.nome, updatedVendedor.matricula, updatedVendedor.comissao_percentual, id]
+        );
+        return result.affectedRows > 0; // Returns true if the update was successful, false otherwise
+    }
+
+    public async deleteVendedor(id: number): Promise<boolean> {
+        const result = await executeQuery('DELETE FROM vendedores WHERE id_vendedor = ?', [id]);
+        return result.affectedRows > 0; // Returns true if the deletion was successful, false otherwise
     }
 }

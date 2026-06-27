@@ -7,79 +7,67 @@ export class EstoqueService {
     private estoqueRepository = EstoqueRepository.getInstance();
     private carroRepository = CarroRepository.getInstance();
 
-    private gerarNovoId(): number {
-        const estoques = this.estoqueRepository.getEstoques();
-        if (estoques.length === 0) {
-            return 1;
-        }
-        // map: percorre o array de estoques e extrai os id_estoque para uma array
-        // ...: operador spread, espalha array em elementos individuais (1, 3, 5)
-        // Math.max: encontra o maior valor
-        const maiorId = Math.max(...estoques.map(estoque => estoque.id_estoque));
-        return maiorId + 1;
+    public async listarEstoques(): Promise<Estoque[]> {
+        return await this.estoqueRepository.getEstoques();
     }
 
-    public listarEstoques() {
-        return this.estoqueRepository.getEstoques();
-    }
-
-    public buscarEstoquePorId(id: number) {
-        const estoque = this.estoqueRepository.getEstoqueById(id);
+    public async buscarEstoquePorId(id: number): Promise<Estoque> {
+        const estoque = await this.estoqueRepository.getEstoqueById(id);
         if (!estoque) {
             throw new Error('Estoque não encontrado');
         }
         return estoque;
     }
 
-    public listarEstoquesPorCarroId(id_carro: number) {
-        const carro = this.carroRepository.getCarroById(id_carro);
+    public async listarEstoquesPorCarroId(id_carro: number): Promise<Estoque[]> {
+        const carro = await this.carroRepository.getCarroById(id_carro);
         if (!carro) {
             throw new Error('Carro não encontrado');
         }
-        return this.estoqueRepository.getEstoquesByCarroId(id_carro);
+        return await this.estoqueRepository.getEstoquesByCarroId(id_carro);
     }
 
-    public criarEstoque(data: any) {
+    public async criarEstoque(data: any): Promise<Estoque> {
         this.validaCamposObrigatorios(data);
         this.validaQuantidade(data.quantidade);
         this.validaDataEntrada(data.data_entrada);
 
         // verifica se carro existe, no repository carros
-        const carro = this.carroRepository.getCarroById(data.id_carro);
+        const carro = await this.carroRepository.getCarroById(data.id_carro);
         if (!carro) {
             throw new Error('Carro não encontrado');
         }
 
         // verifica se ja existe estoque para o carro, no repository estoques
-        const estoquesExistentes = this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
+        const estoquesExistentes = await this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
         if (estoquesExistentes.length > 0) {
             throw new Error('Já existe estoque para este carro');
         }
 
-        const id_estoque = this.gerarNovoId();
         const estoque = new Estoque(
-            id_estoque,
+            null,
             data.id_carro,
             data.quantidade,
             data.localizacao_patio,
-            new Date(data.data_entrada)
+            data.data_entrada
         );
-        this.estoqueRepository.addEstoque(estoque);
+
+        return this.estoqueRepository.addEstoque(estoque);
     }
 
-    public atualizarEstoque(id: number, data: any) {
+    public async atualizarEstoque(id: number, data: any): Promise<Estoque | null> {
         this.validaCamposObrigatorios(data);
         this.validaQuantidade(data.quantidade);
         this.validaDataEntrada(data.data_entrada);
 
         // verifica se carro existe, no repository carros
-        const carro = this.carroRepository.getCarroById(data.id_carro);
+        const carro = await this.carroRepository.getCarroById(data.id_carro);
         if (!carro) {
             throw new Error('Carro não encontrado');
         }
 
         // verifica se estoque existe, no repository estoques
-        const estoqueExistente = this.estoqueRepository.getEstoqueById(id);
+        const estoqueExistente = await this.estoqueRepository.getEstoqueById(id);
         if (!estoqueExistente) {
             throw new Error('Estoque não encontrado');
         }
@@ -87,26 +75,27 @@ export class EstoqueService {
         // verifica se ja existe outro estoque para o mesmo carro, no repository estoques
         // caso seja alterado o id_carro, essa verificação é necessária para evitar que 
         // um estoque seja atualizado para um carro que já possui outro estoque
-        const estoquesDoCarro = this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
+        const estoquesDoCarro = await this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
         const estoqueDuplicado = estoquesDoCarro.some(estoque => estoque.id_estoque !== id);
         if (estoqueDuplicado) {
             throw new Error('Já existe estoque para este carro');
         }
 
-        const estoqueAtualizado = new Estoque(id, data.id_carro, data.quantidade, data.localizacao_patio, new Date(data.data_entrada));
-        const sucesso = this.estoqueRepository.updateEstoque(id, estoqueAtualizado);
+        const estoqueAtualizado = new Estoque(id, data.id_carro, data.quantidade, data.localizacao_patio, data.data_entrada);
+        const sucesso = await this.estoqueRepository.updateEstoque(id, estoqueAtualizado);
         if (!sucesso) {
             throw new Error('Estoque não encontrado');
         }
-        return sucesso;
+        return estoqueAtualizado;
     }
 
-    public removerEstoque(id: number) {
-        const estoqueExistente = this.estoqueRepository.getEstoqueById(id);
+    public async removerEstoque(id: number): Promise<Estoque | null> {
+        const estoqueExistente = await this.estoqueRepository.getEstoqueById(id);
         if (!estoqueExistente) {
             throw new Error('Estoque não encontrado');
         }
-        return this.estoqueRepository.deleteEstoque(id);
+        await this.estoqueRepository.deleteEstoque(id);
+        return estoqueExistente;
     }
 
     private validaCamposObrigatorios(data: any): void {

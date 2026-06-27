@@ -73,8 +73,8 @@ export class NotaFiscalService {
         this.atualizarEstoqueCarro(data.id_carro);
     }
 
-    private verificarEstoqueCarro(id_carro: number): void {
-        const estoques = this.estoqueRepository.getEstoquesByCarroId(id_carro);
+    private async verificarEstoqueCarro(id_carro: number): Promise<void> {
+        const estoques = await this.estoqueRepository.getEstoquesByCarroId(id_carro);
         if (estoques.length === 0) {
             throw new Error('Carro não encontrado em estoque.');
         }

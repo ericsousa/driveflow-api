@@ -3,12 +3,12 @@ import { Request, Response } from 'express';
 
 const estoqueService = new EstoqueService();
 
-export function listarEstoque(req: Request, res: Response) {
-    const estoques = estoqueService.listarEstoques();
+export async function listarEstoque(req: Request, res: Response): Promise<void> {
+    const estoques = await estoqueService.listarEstoques();
     res.json(estoques);
 }
 
-export function buscarEstoquePorId(req: Request, res: Response) {
+export async function buscarEstoquePorId(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -16,7 +16,7 @@ export function buscarEstoquePorId(req: Request, res: Response) {
     }
 
     try {
-        const estoque = estoqueService.buscarEstoquePorId(id);
+        const estoque = await estoqueService.buscarEstoquePorId(id);
         res.status(200).json(estoque);
     } catch (error) {
         const message = (error as Error).message;
@@ -28,7 +28,7 @@ export function buscarEstoquePorId(req: Request, res: Response) {
     }
 }
 
-export function listarEstoquePorCarroId(req: Request, res: Response) {
+export async function listarEstoquePorCarroId(req: Request, res: Response): Promise<void> {
     const id_carro = parseInt(String(req.params.id_carro));
     if (isNaN(id_carro)) {
         res.status(400).json({ error: 'ID do carro inválido' });
@@ -36,7 +36,7 @@ export function listarEstoquePorCarroId(req: Request, res: Response) {
     }
 
     try {
-        const estoques = estoqueService.listarEstoquesPorCarroId(id_carro);
+        const estoques = await estoqueService.listarEstoquesPorCarroId(id_carro);
         res.status(200).json(estoques);
     } catch (error) {
         const message = (error as Error).message;
@@ -48,11 +48,11 @@ export function listarEstoquePorCarroId(req: Request, res: Response) {
     }
 }
 
-export function criarEstoque(req: Request, res: Response) {
+export async function criarEstoque(req: Request, res: Response): Promise<void> {
     const data = req.body;
     try {
-        estoqueService.criarEstoque(data);
-        res.status(201).json({ message: 'Estoque criado com sucesso' });
+        const estoqueCriado = await estoqueService.criarEstoque(data);
+        res.status(201).json(estoqueCriado);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Carro não encontrado') {
@@ -60,14 +60,14 @@ export function criarEstoque(req: Request, res: Response) {
             return;
         }
         if (message === 'Já existe estoque para este carro') {
-            res.status(400).json({ error: message });
+            res.status(409).json({ error: message });
             return;
         }
         res.status(400).json({ error: message });
     }
 }
 
-export function atualizarEstoque(req: Request, res: Response) {
+export async function atualizarEstoque(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -75,8 +75,8 @@ export function atualizarEstoque(req: Request, res: Response) {
     }
     const data = req.body;
     try {
-        estoqueService.atualizarEstoque(id, data);
-        res.status(200).json({ message: 'Estoque atualizado com sucesso' });
+        const estoqueAtualizado = await estoqueService.atualizarEstoque(id, data);
+        res.status(200).json(estoqueAtualizado);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Estoque não encontrado') {
@@ -88,14 +88,14 @@ export function atualizarEstoque(req: Request, res: Response) {
             return;
         }
         if (message === 'Já existe estoque para este carro') {
-            res.status(422).json({ error: message });
+            res.status(409).json({ error: message });
             return;
         }
         res.status(400).json({ error: message });
     }
 }
 
-export function removerEstoque(req: Request, res: Response) {
+export async function removerEstoque(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -103,9 +103,9 @@ export function removerEstoque(req: Request, res: Response) {
     }
 
     try {
-        const sucesso = estoqueService.removerEstoque(id);
-        if (sucesso) {
-            res.status(200).json({ message: 'Estoque removido com sucesso' });
+        const estoqueRemovido = await estoqueService.removerEstoque(id);
+        if (estoqueRemovido) {
+            res.status(200).json(estoqueRemovido);
         } else {
             res.status(404).json({ error: 'Estoque não encontrado' });
         }

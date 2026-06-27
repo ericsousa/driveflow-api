@@ -30,8 +30,8 @@ export async function buscarCarrosDisponiveis(req: Request, res: Response): Prom
 export async function criarCarro(req: Request, res: Response): Promise<void> {
     const data = req.body;
     try {
-        await carroService.criarCarro(data);
-        res.status(201).json({ message: 'Carro criado com sucesso' });
+        const carroCriado = await carroService.criarCarro(data);
+        res.status(201).json(carroCriado);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Placa já existe') {
@@ -50,9 +50,9 @@ export async function atualizarCarro(req: Request, res: Response): Promise<void>
     }
     const data = req.body;
     try {
-        const sucesso = await carroService.atualizarCarro(id, data);
-        if (sucesso) {
-            res.json({ message: 'Carro atualizado com sucesso' });
+        const carroAtualizado = await carroService.atualizarCarro(id, data);
+        if (carroAtualizado) {
+            res.status(200).json(carroAtualizado);
         } else {
             res.status(404).json({ error: 'Carro não encontrado' });
         }
@@ -73,9 +73,9 @@ export async function removerCarro(req: Request, res: Response): Promise<void> {
         return;
     }
     try {
-        const sucesso = await carroService.removerCarro(id);
-        if (sucesso) {
-            res.json({ message: 'Carro removido com sucesso' });
+        const carroRemovido = await carroService.removerCarro(id);
+        if (carroRemovido) {
+            res.status(200).json(carroRemovido);
         } else {
             res.status(404).json({ error: 'Carro não encontrado' });
         }

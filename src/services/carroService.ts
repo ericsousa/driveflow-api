@@ -27,7 +27,10 @@ export class CarroService {
 
     public async criarCarro(data: any): Promise<Carro> {
         this.validaCamposObrigatorios(data);
-        this.validaPlaca(data.placa);
+        // validar placa acessa banco de dados
+        // necessita de async/await caso contrario crasha a aplicação
+        // retornando erro diretamente no console, sem resposta para o usuário
+        await this.validaPlaca(data.placa); 
         this.validaAno(data.ano);
         this.validaPreco(data.preco);
 
@@ -37,7 +40,7 @@ export class CarroService {
 
     public async atualizarCarro(id: number, data: any): Promise<Carro | null> {
         this.validaCamposObrigatorios(data);
-        this.validaPlaca(data.placa, id);
+        await this.validaPlaca(data.placa, id);
         this.validaAno(data.ano);
         this.validaPreco(data.preco);
 

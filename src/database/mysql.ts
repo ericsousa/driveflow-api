@@ -11,6 +11,7 @@ const dbConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    dateStrings: true,                  // retorna datas como strings em vez de objetos Date
     waitForConnections: true,           // se todas conexões estiverem ocupadas, aguarda até que uma conexão seja liberada
     connectionLimit: 10,                // maximo de conexões simultâneas no pool
     queueLimit: 0                       // sem limite de fila de espera para conexões, se todas estiverem ocupadas

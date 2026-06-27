@@ -9,83 +9,71 @@ export class CarroService {
     private notaFiscalRepository = NotaFiscalRepository.getInstance(); // Get the singleton instance of NotaFiscalRepository
     private estoqueRepository = EstoqueRepository.getInstance(); // Get the singleton instance of EstoqueRepository
 
-    private gerarNovoId(): number {
-        const carros = this.carroRepository.getCarros();
-        if (carros.length === 0) {
-            return 1; 
-        }
-        // map: percorre o array de carros e extrai os id_carro para uma array
-        // ...: operador spread, espalha array em elementos individuais (1, 3, 5)
-        // Math.max: encontra o maior valor 
-        const maiorId = Math.max(...carros.map(carro => carro.id_carro));
-        return maiorId + 1;
-    }
-
-    public listarCarros() {
+    public async listarCarros(): Promise<Carro[]> {
         return this.carroRepository.getCarros();
     }
 
-    public buscarCarroPorId(id: number) {
+    public async buscarCarroPorId(id: number): Promise<Carro | null> {
         return this.carroRepository.getCarroById(id);
     }
 
-    public buscarCarrosDisponiveis() {
-        const estoques = this.estoqueRepository.getEstoques();                      // busca todo estoque
-        const carrosDisponiveis: Carro[] = [];
-        
-        estoques.forEach(estoque => {                                               // percorre o estoque 
-            if (estoque.quantidade > 0) {                                           // verifica se carro possuir estoque
-                const carro = this.carroRepository.getCarroById(estoque.id_carro);
-                if (carro) {                                                        // se carro existir
-                    carrosDisponiveis.push(carro);                                  // adiciona na lista de carros disponíveis
-                }
-            }
-        });
-        return carrosDisponiveis;
+    public async buscarCarrosDisponiveis(): Promise<Carro[]> {
+
+        // Não é mais necessário percorrer o estoque para verificar a disponibilidade, 
+        // agora temos uma consulta SQL que retorna apenas os carros disponíveis 
+        // diretamente do banco de dados.
+        return await this.carroRepository.getCarrosDisponiveis();
     }
 
-    public criarCarro(data: any) {
+    public async criarCarro(data: any): Promise<Carro> {
         this.validaCamposObrigatorios(data);
         this.validaPlaca(data.placa);
         this.validaAno(data.ano);
         this.validaPreco(data.preco);
 
-        const id_carro = this.gerarNovoId();
-        const carro = new Carro(id_carro, data.marca, data.modelo, data.ano, data.placa, data.preco, data.cor);
-        this.carroRepository.addCarro(carro);
+        const carro = new Carro(null, data.marca, data.modelo, data.ano, data.placa, data.preco, data.cor);
+        return await this.carroRepository.addCarro(carro);
     }
 
-    public atualizarCarro(id: number, data: any) {
+    public async atualizarCarro(id: number, data: any): Promise<Carro | null> {
         this.validaCamposObrigatorios(data);
         this.validaPlaca(data.placa, id);
         this.validaAno(data.ano);
         this.validaPreco(data.preco);
 
+        // verifica se o carro existe antes de tentar atualizar
+        const carroExistente = await this.carroRepository.getCarroById(id);
+        if(!carroExistente) {
+            return null;
+        }
+        
         const carro = new Carro(id, data.marca, data.modelo, data.ano, data.placa, data.preco, data.cor);
-        return this.carroRepository.updateCarro(id, carro);
+        await this.carroRepository.updateCarro(id, carro);
+        return carro;
     }
 
-    public removerCarro(id: number) {
+    public async removerCarro(id: number): Promise<Carro | null> {
 
         // verifica se carro existe antes de tentar excluir
-        const carroExistente = this.carroRepository.getCarroById(id);
+        const carroExistente = await this.carroRepository.getCarroById(id);
         if (!carroExistente) {
             throw new Error('Carro não encontrado');
         }
 
         // verificar se carro possui notas fiscais associadas antes de permitir a exclusão
-        const notasFiscaisAssociadas = this.notaFiscalRepository.getNotasFiscaisByCarroId(id);
+        const notasFiscaisAssociadas = await this.notaFiscalRepository.getNotasFiscaisByCarroId(id);
         if (notasFiscaisAssociadas.length > 0) {
             throw new Error('Não é possível excluir o carro, existem notas fiscais associadas a ele');
         }
 
         // verifica se carro possui estoque associado antes de permitir a exclusão
-        const estoquesAssociados = this.estoqueRepository.getEstoquesByCarroId(id);
+        const estoquesAssociados = await this.estoqueRepository.getEstoquesByCarroId(id);
         if (estoquesAssociados.length > 0) {
             throw new Error('Não é possível excluir o carro, existem estoques associados a ele');
         }
 
-        return this.carroRepository.deleteCarro(id);
+        await this.carroRepository.deleteCarro(id);
+        return carroExistente;  // Retorna o carro que foi removido
     }
 
 
@@ -110,19 +98,23 @@ export class CarroService {
         }
     }  
 
-    private validaPlaca(placa: string, id?: number): void {
+    private async validaPlaca(placa: string, id?: number): Promise<void> {
 
-        const carroExistente = this.carroRepository.getCarros().find(carro => carro.placa === placa);
+        //Busca 
+        const carroExistente = await this.carroRepository.getCarroByPlaca(placa);
+
+        // Se não existir carro com a placa informada, então a placa é válida
         if (!carroExistente) {
           return; // Placa é única, pode ser usada
         }
 
-        // Criação de um novo carro
+        // Se for na criação de novo carro e a placa já existir da erro
         if (id === undefined) {
           throw new Error('Placa já existe');
         }
 
-        // Atualização de um carro existente
+        // Se for na atualização de um carro existente
+        // Só da erro se a placa encontrada pertencer a outro carro
         if (carroExistente.id_carro !== id) {
           throw new Error('Placa já existe');
         }

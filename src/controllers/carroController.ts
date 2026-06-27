@@ -3,18 +3,18 @@ import { Request, Response } from 'express';
 
 const carroService = new CarroService();
 
-export function listarCarros(req: Request, res: Response) {
-    const carros = carroService.listarCarros();
+export async function listarCarros(req: Request, res: Response): Promise<void> {
+    const carros = await carroService.listarCarros();
     res.json(carros);
 }
 
-export function buscarCarroPorId(req: Request, res: Response) {
+export async function buscarCarroPorId(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
-    const carro = carroService.buscarCarroPorId(id);
+    const carro = await carroService.buscarCarroPorId(id);
     if (!carro) {
         res.status(404).json({ error: 'Carro não encontrado' });
         return;
@@ -22,15 +22,15 @@ export function buscarCarroPorId(req: Request, res: Response) {
     res.json(carro);
 }
 
-export function buscarCarrosDisponiveis(req: Request, res: Response) {
-    const carrosDisponiveis = carroService.buscarCarrosDisponiveis();
+export async function buscarCarrosDisponiveis(req: Request, res: Response): Promise<void> {
+    const carrosDisponiveis = await carroService.buscarCarrosDisponiveis();
     res.json(carrosDisponiveis);
 }
 
-export function criarCarro(req: Request, res: Response) {
+export async function criarCarro(req: Request, res: Response): Promise<void> {
     const data = req.body;
     try {
-        carroService.criarCarro(data);
+        await carroService.criarCarro(data);
         res.status(201).json({ message: 'Carro criado com sucesso' });
     } catch (error) {
         const message = (error as Error).message;
@@ -42,7 +42,7 @@ export function criarCarro(req: Request, res: Response) {
     }
 }
 
-export function atualizarCarro(req: Request, res: Response) {
+export async function atualizarCarro(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
@@ -50,7 +50,7 @@ export function atualizarCarro(req: Request, res: Response) {
     }
     const data = req.body;
     try {
-        const sucesso = carroService.atualizarCarro(id, data);
+        const sucesso = await carroService.atualizarCarro(id, data);
         if (sucesso) {
             res.json({ message: 'Carro atualizado com sucesso' });
         } else {
@@ -66,14 +66,14 @@ export function atualizarCarro(req: Request, res: Response) {
     }  
 }
 
-export function removerCarro(req: Request, res: Response) {
+export async function removerCarro(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
     try {
-        const sucesso = carroService.removerCarro(id);
+        const sucesso = await carroService.removerCarro(id);
         if (sucesso) {
             res.json({ message: 'Carro removido com sucesso' });
         } else {

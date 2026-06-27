@@ -1,4 +1,5 @@
 import { Carro } from '../models/Carro';
+import { executeQuery } from '../database/mysql';
 
 export class CarroRepository {
 
@@ -29,33 +30,92 @@ export class CarroRepository {
         `;
     }
 
-    public getCarros(): Carro[] {
-        return this.carros;
+    public async getCarros(): Promise<Carro[]> {
+        const linhas = await executeQuery('SELECT * FROM carros', []);
+
+        return linhas.map((linha: any) => new Carro(
+            linha.id_carro,
+            linha.marca,
+            linha.modelo,
+            linha.ano,
+            linha.placa,
+            Number(linha.preco), // banco retorna string para decimais, precisamos converter para number
+            linha.cor
+        ));
     }
 
-    public getCarroById(id: number): Carro | undefined {
-        return this.carros.find(carro => carro.id_carro === id);
-    }
-
-    public addCarro(carro: Carro): void {
-        this.carros.push(carro);
-    }
-
-    public updateCarro(id: number, updatedCarro: Carro): boolean {
-        const index = this.carros.findIndex(carro => carro.id_carro === id);
-        if (index !== -1) {
-            this.carros[index] = updatedCarro;
-            return true;
+    public async getCarroById(id: number): Promise<Carro | null> {
+        const linhas = await executeQuery('SELECT * FROM carros WHERE id_carro = ?', [id]);
+        if (linhas.length === 0) {
+            return null;
         }
-        return false;
+        return new Carro(
+            linhas[0].id_carro,
+            linhas[0].marca,
+            linhas[0].modelo,
+            linhas[0].ano,
+            linhas[0].placa,
+            Number(linhas[0].preco),
+            linhas[0].cor
+        );
     }
 
-    public deleteCarro(id: number): boolean {
-        const index = this.carros.findIndex(carro => carro.id_carro === id);
-        if (index !== -1) {
-            this.carros.splice(index, 1);
-            return true;
-        }   
-        return false;
+    public async getCarroByPlaca(placa: string): Promise<Carro | null> {
+        const linhas = await executeQuery(
+            'SELECT * FROM carros WHERE placa = ?', [placa]);
+        
+        if (linhas.length === 0) {
+            return null;
+        }
+
+        return new Carro(
+            linhas[0].id_carro,
+            linhas[0].marca,
+            linhas[0].modelo,
+            linhas[0].ano,
+            linhas[0].placa,
+            Number(linhas[0].preco),
+            linhas[0].cor
+        );
+    }
+
+    public async getCarrosDisponiveis(): Promise<Carro[]> {
+        const linhas = await executeQuery(`
+            SELECT c.* FROM carros c
+            JOIN estoques e ON c.id_carro = e.id_carro
+            WHERE e.quantidade > 0
+        `, []);
+        return linhas.map((linha: any) => new Carro(
+            linha.id_carro,
+            linha.marca,
+            linha.modelo,
+            linha.ano,
+            linha.placa,
+            Number(linha.preco),
+            linha.cor
+        ));
+    }
+
+    public async addCarro(carro: Carro): Promise<Carro> {
+        const result = await executeQuery(
+            'INSERT INTO carros (marca, modelo, ano, placa, preco, cor) VALUES (?, ?, ?, ?, ?, ?)',
+            [carro.marca, carro.modelo, carro.ano, carro.placa, carro.preco, carro.cor]
+        );
+
+        return new Carro(result.insertId, carro.marca, carro.modelo, carro.ano, carro.placa, carro.preco, carro.cor
+        );
+    }
+
+    public async updateCarro(id: number, updatedCarro: Carro): Promise<boolean> {
+       const result = await executeQuery(
+            'UPDATE carros SET marca = ?, modelo = ?, ano = ?, placa = ?, preco = ?, cor = ? WHERE id_carro = ?',
+            [updatedCarro.marca, updatedCarro.modelo, updatedCarro.ano, updatedCarro.placa, updatedCarro.preco, updatedCarro.cor, id]
+        );
+        return result.affectedRows > 0; // Returns true if the update was successful, false otherwise
+    }
+
+    public async deleteCarro(id: number): Promise<boolean> {
+        const result = await executeQuery('DELETE FROM carros WHERE id_carro = ?', [id]);
+        return result.affectedRows > 0; // Returns true if the deletion was successful, false otherwise
     }
 }

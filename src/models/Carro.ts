@@ -1,5 +1,5 @@
 export class Carro {
-    id_carro: number; 
+    id_carro: number | null; 
     marca: string;
     modelo: string;
     ano: number;
@@ -7,7 +7,7 @@ export class Carro {
     preco: number;
     cor: string;
     
-    constructor(id_carro: number, marca: string, modelo: string, ano: number, placa: string, preco: number, cor: string) {
+    constructor(id_carro: number | null, marca: string, modelo: string, ano: number, placa: string, preco: number, cor: string) {
         this.id_carro = id_carro;
         this.marca = marca;
         this.modelo = modelo;

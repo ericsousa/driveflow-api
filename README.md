@@ -2,7 +2,7 @@
 
 A simple and functional REST API developed in **TypeScript** with **Express.js** for managing a vehicle dealership.
 
-This project was created as part of a Web Programming assignment focused on MVC architecture, CRUD operations, business rules, HTTP methods, JSON responses, TypeScript typing, and in-memory data persistence.
+This project was created as part of a Web Programming assignment focused on MVC architecture, CRUD operations, business rules, HTTP methods, JSON responses, TypeScript typing, and data persistence with a **MySQL** relational database. It evolves the original in-memory version into a fully persisted application.
 
 ## 🚀 Features
 
@@ -16,12 +16,17 @@ This project was created as part of a Web Programming assignment focused on MVC 
 - ✅ Invoice listing by seller.
 - ✅ Validation for duplicated CPF, seller registration, plate, and invoice number.
 - ✅ Protection against invalid removals when related records already exist.
+- ✅ Persistent storage in a MySQL database (data survives server restarts).
 
 ## 🛠️ Technologies Used
 
 - **TypeScript**: Main language with static typing.
 - **Node.js**: JavaScript runtime environment.
 - **Express.js**: Web framework used to build the REST API.
+- **MySQL 8**: Relational database for data persistence.
+- **mysql2**: MySQL client (connection pool) used to run SQL queries.
+- **Docker / Docker Compose**: Runs the MySQL database in a container.
+- **dotenv**: Loads environment variables from a `.env` file.
 - **ts-node**: Runs TypeScript files during development.
 
 ## 🧱 Project Structure
@@ -29,8 +34,10 @@ This project was created as part of a Web Programming assignment focused on MVC 
 ```text
 src/
   controllers/
+  database/
   models/
   repositories/
+  routes/
   services/
   app.ts
 ```
@@ -49,6 +56,31 @@ Install dependencies:
 ```bash
 npm install
 ```
+
+### Database Setup
+
+The API connects to a MySQL database. The database runs in a Docker container, so **Docker Desktop** must be installed and running.
+
+Create your `.env` file from the example:
+
+```bash
+cp .env.example .env
+```
+
+Start the MySQL container:
+
+```bash
+npm run db:up
+```
+
+Useful database scripts:
+
+```bash
+npm run db:down    # stop the container (data is kept)
+npm run db:reset   # wipe and recreate the database from scratch
+```
+
+The application tables are created automatically on startup.
 
 ### Development
 
@@ -155,6 +187,17 @@ http://localhost:3000
 - Customers, sellers, and vehicles cannot be removed when linked invoices exist.
 - Vehicles cannot be removed when linked stock records exist.
 
+## 📡 Response Status Codes
+
+| Status | Situation |
+| --- | --- |
+| `200 OK` | Successful request (`GET`, `PUT`, `DELETE`) |
+| `201 Created` | Resource created successfully (`POST`) |
+| `400 Bad Request` | Invalid data or missing required fields |
+| `404 Not Found` | Resource not found by the given ID |
+| `409 Conflict` | Uniqueness violation (CPF, registration, plate, invoice number) |
+| `422 Unprocessable Entity` | Business rule prevents the operation (e.g. removing a linked record, no stock available) |
+
 ## 🧾 Example Request
 
 ```http
@@ -173,9 +216,25 @@ Content-Type: application/json
 }
 ```
 
+### Example Response
+
+`201 Created` — the created resource is returned with its generated ID:
+
+```json
+{
+  "id_nota": 1,
+  "numero_nota": "NF-001",
+  "data_emissao": "2026-05-31",
+  "valor_total": 85000,
+  "id_cliente": 1,
+  "id_vendedor": 1,
+  "id_carro": 1
+}
+```
+
 ## 📌 Notes
 
-- This project does not use a database.
-- All data is stored in memory and is reset when the server restarts.
-- The API follows an MVC structure using models, repositories, services, and controllers.
+- Data is persisted in a MySQL database running via Docker, so it survives server restarts.
+- Database tables are created automatically on application startup.
+- The API follows an MVC structure using routes, controllers, services, repositories, models, and a dedicated database layer.
 - A Postman collection is included in the repository for endpoint testing.

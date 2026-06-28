@@ -3,30 +3,30 @@ import { Request, Response } from 'express';
 
 const notaFiscalService = new NotaFiscalService();
 
-export function listarNotasFiscais(req: Request, res: Response) {
-    const notasFiscais = notaFiscalService.listarNotasFiscais();
+export async function listarNotasFiscais(req: Request, res: Response): Promise<void> {
+    const notasFiscais = await notaFiscalService.listarNotasFiscais();
     res.json(notasFiscais);
 }
 
-export function buscarNotaFiscalPorId(req: Request, res: Response) {
+export async function buscarNotaFiscalPorId(req: Request, res: Response): Promise<void> {
     const id = parseInt(String(req.params.id));
     if (isNaN(id)) {
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
     try {
-        const nota = notaFiscalService.buscarNotaFiscalPorId(id);
+        const nota = await notaFiscalService.buscarNotaFiscalPorId(id);
         res.json(nota);
     } catch (error) {
         res.status(404).json({ error: (error as Error).message });
     }
 }
 
-export function criarNotaFiscal(req: Request, res: Response) {
+export async function criarNotaFiscal(req: Request, res: Response): Promise<void> {
     const data = req.body;
     try {
-        notaFiscalService.criarNotaFiscal(data);
-        res.status(201).json({ message: 'Nota fiscal criada com sucesso' });
+        const notaFiscal = await notaFiscalService.criarNotaFiscal(data);
+        res.status(201).json(notaFiscal);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Cliente relacionado à nota fiscal não encontrado.' ||

@@ -1,4 +1,5 @@
 import { NotaFiscal } from '../models/NotaFiscal';
+import { executeQuery } from '../database/mysql';
 
 export class NotaFiscalRepository {
 
@@ -32,28 +33,119 @@ export class NotaFiscalRepository {
         `;
     }
 
-    public getNotasFiscais(): NotaFiscal[] {
-        return this.notasFiscais;
+    public async getNotasFiscais(): Promise<NotaFiscal[]> {
+
+        const lines = await executeQuery('SELECT * FROM notas_fiscais', []);
+        return lines.map((line: any) => new NotaFiscal(
+            line.id_nota,
+            line.numero_nota,
+            line.data_emissao,
+            Number(line.valor_total), //mysql devolve string par decimais
+            line.id_cliente,
+            line.id_vendedor,
+            line.id_carro
+        ));
     }
 
-    public getNotasFiscaisByClienteId(id_cliente: number): NotaFiscal[] {
-        return this.notasFiscais.filter(nota => nota.id_cliente === id_cliente);
+    public async getNotasFiscaisByClienteId(id_cliente: number): Promise<NotaFiscal[]> {
+        const lines = await executeQuery(
+            'SELECT * FROM notas_fiscais WHERE id_cliente = ?', 
+            [id_cliente]
+        );
+        if (lines.length === 0) {
+            return [];
+        }
+        return lines.map((line: any) => new NotaFiscal(
+            line.id_nota,
+            line.numero_nota,
+            line.data_emissao,
+            Number(line.valor_total),
+            line.id_cliente,
+            line.id_vendedor,
+            line.id_carro
+        ));
     }
 
-    public getNotasFiscaisByCarroId(id_carro: number): NotaFiscal[] {
-        return this.notasFiscais.filter(nota => nota.id_carro === id_carro);
+    public async getNotasFiscaisByCarroId(id_carro: number): Promise<NotaFiscal[]> {
+        const lines = await executeQuery(
+            'SELECT * FROM notas_fiscais WHERE id_carro = ?', 
+            [id_carro]
+        );
+        if (lines.length === 0) {
+            return [];
+        }
+        return lines.map((line: any) => new NotaFiscal(
+            line.id_nota,
+            line.numero_nota,
+            line.data_emissao,
+            Number(line.valor_total),
+            line.id_cliente,
+            line.id_vendedor,
+            line.id_carro
+        ));
     }
 
-    public getNotasFiscaisByVendedorId(id_vendedor: number): NotaFiscal[] {
-        return this.notasFiscais.filter(nota => nota.id_vendedor === id_vendedor);
+    public async getNotasFiscaisByVendedorId(id_vendedor: number): Promise<NotaFiscal[]> {
+        const lines = await executeQuery(
+            'SELECT * FROM notas_fiscais WHERE id_vendedor = ?', 
+            [id_vendedor]
+        );
+        if (lines.length === 0) {
+            return [];
+        }
+        return lines.map((line: any) => new NotaFiscal(
+            line.id_nota,
+            line.numero_nota,
+            line.data_emissao,
+            Number(line.valor_total),
+            line.id_cliente,
+            line.id_vendedor,
+            line.id_carro
+        ));
     }
 
-    public getNotaFiscalById(id: number): NotaFiscal | undefined {
-        return this.notasFiscais.find(nota => nota.id_nota === id);
+    public async getNotaFiscalById(id: number): Promise<NotaFiscal | null> {
+        const lines = await executeQuery(
+            'SELECT * FROM notas_fiscais WHERE id_nota = ?', 
+            [id]
+        );
+        if (lines.length === 0) {
+            return null;
+        }
+        const line = lines[0];
+        return new NotaFiscal(
+            line.id_nota,
+            line.numero_nota,
+            line.data_emissao,
+            Number(line.valor_total),
+            line.id_cliente,
+            line.id_vendedor,
+            line.id_carro
+        );
     }
 
-    public addNotaFiscal(notaFiscal: NotaFiscal): void {
-        this.notasFiscais.push(notaFiscal);
+    public async addNotaFiscal(notaFiscal: NotaFiscal): Promise<NotaFiscal> {
+        const result = await executeQuery(
+            'INSERT INTO notas_fiscais (numero_nota, data_emissao, valor_total, id_cliente, id_vendedor, id_carro) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+                notaFiscal.numero_nota,
+                notaFiscal.data_emissao,
+                Number(notaFiscal.valor_total),
+                notaFiscal.id_cliente,
+                notaFiscal.id_vendedor,
+                notaFiscal.id_carro
+            ]
+        );
+        return new NotaFiscal(
+            result.insertId,
+            notaFiscal.numero_nota,
+            notaFiscal.data_emissao,
+            Number(notaFiscal.valor_total),
+            notaFiscal.id_cliente,
+            notaFiscal.id_vendedor,
+            notaFiscal.id_carro
+        );
     }
+
 
 }

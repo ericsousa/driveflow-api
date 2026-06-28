@@ -1,11 +1,16 @@
 import { Request, Response } from 'express';
 import { ClienteService } from '../services/clienteService';
+import { AppError } from '../errors/AppError';
 
 const clienteService = new ClienteService();
 
 export async function listarClientes(req: Request, res: Response): Promise<void> {
-    const clientes = await clienteService.listarClientes();
-    res.json(clientes);
+    try {
+        const clientes = await clienteService.listarClientes();
+        res.json(clientes);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 }
 
 export async function buscarClientePorId(req: Request, res: Response): Promise<void> {
@@ -18,13 +23,12 @@ export async function buscarClientePorId(req: Request, res: Response): Promise<v
     try {
         const cliente = await clienteService.buscarClientePorId(id);
         res.status(200).json(cliente);
-    } catch (error){
-        const message = (error as Error).message;
-        if (message === 'Cliente não encontrado') {
-            res.status(404).json({ error: message });
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -37,13 +41,12 @@ export async function listarNotasFiscaisPorCliente(req: Request, res: Response):
     try {
         const notasFiscais = await clienteService.listarNotasFiscaisPorClienteId(id);
         res.json(notasFiscais);
-    } catch (e: unknown) {
-        const message = (e as Error).message;
-        if (message === 'Cliente não encontrado') {
-            res.status(404).json({ error: message });
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
-        } 
-        res.status(400).json({ error: (e as Error).message });
+        }
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -52,15 +55,15 @@ export async function criarCliente(req: Request, res: Response): Promise<void> {
     try {
         const clienteCriado = await clienteService.criarCliente(cliente);
         res.status(201).json(clienteCriado);
-    } catch (e: unknown) {
-        const message = (e as Error).message;   
-        if (message === 'CPF já cadastrado') {
-            res.status(409).json({ error: message });
+     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: (e as Error).message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
+
 
 export async function atualizarCliente(req: Request, res: Response): Promise<void> {
 
@@ -74,17 +77,12 @@ export async function atualizarCliente(req: Request, res: Response): Promise<voi
     try {
         const clienteAtualizado = await clienteService.atualizarCliente(id, updatedCliente);
         res.json(clienteAtualizado);
-    } catch (e: unknown) {
-        const message = (e as Error).message;   
-        if (message === 'Cliente não encontrado') {
-            res.status(404).json({ error: message });
+     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'CPF já cadastrado') {
-            res.status(409).json({ error: message });
-            return;
-        }
-        res.status(400).json({ error: (e as Error).message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -99,19 +97,12 @@ export async function removerCliente(req: Request, res: Response): Promise<void>
     try {
         const clienteRemovido = await clienteService.removerCliente(id);
         res.json(clienteRemovido);
-    } catch (e: unknown) {
-
-        const message = (e as Error).message;
-        if (message === 'Cliente não encontrado') {
-            res.status(404).json({ error: message });
+     } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'Não é possível excluir o cliente, existem notas fiscais associadas a ele') {
-            res.status(422).json({ error: (e as Error).message });
-            return;
-        }
-
-        res.status(400).json({error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 

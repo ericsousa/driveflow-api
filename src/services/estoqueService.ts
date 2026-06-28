@@ -1,6 +1,7 @@
 import { Estoque } from '../models/Estoque';
 import { EstoqueRepository } from '../repositories/estoqueRepository';
 import { CarroRepository } from '../repositories/carroRepository';
+import { ValidationError, NotFoundError, ConflictError, BusinessError } from '../errors/AppError';
 
 export class EstoqueService {
 
@@ -14,7 +15,7 @@ export class EstoqueService {
     public async buscarEstoquePorId(id: number): Promise<Estoque> {
         const estoque = await this.estoqueRepository.getEstoqueById(id);
         if (!estoque) {
-            throw new Error('Estoque não encontrado');
+            throw new NotFoundError('Estoque não encontrado');
         }
         return estoque;
     }
@@ -22,7 +23,7 @@ export class EstoqueService {
     public async listarEstoquesPorCarroId(id_carro: number): Promise<Estoque[]> {
         const carro = await this.carroRepository.getCarroById(id_carro);
         if (!carro) {
-            throw new Error('Carro não encontrado');
+            throw new NotFoundError('Carro não encontrado');
         }
         return await this.estoqueRepository.getEstoquesByCarroId(id_carro);
     }
@@ -35,13 +36,13 @@ export class EstoqueService {
         // verifica se carro existe, no repository carros
         const carro = await this.carroRepository.getCarroById(data.id_carro);
         if (!carro) {
-            throw new Error('Carro não encontrado');
+            throw new NotFoundError('Carro não encontrado');
         }
 
         // verifica se ja existe estoque para o carro, no repository estoques
         const estoquesExistentes = await this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
         if (estoquesExistentes.length > 0) {
-            throw new Error('Já existe estoque para este carro');
+            throw new ConflictError('Já existe estoque para este carro');
         }
 
         const estoque = new Estoque(
@@ -63,13 +64,13 @@ export class EstoqueService {
         // verifica se carro existe, no repository carros
         const carro = await this.carroRepository.getCarroById(data.id_carro);
         if (!carro) {
-            throw new Error('Carro não encontrado');
+            throw new NotFoundError('Carro não encontrado');
         }
 
         // verifica se estoque existe, no repository estoques
         const estoqueExistente = await this.estoqueRepository.getEstoqueById(id);
         if (!estoqueExistente) {
-            throw new Error('Estoque não encontrado');
+            throw new NotFoundError('Estoque não encontrado');
         }
 
         // verifica se ja existe outro estoque para o mesmo carro, no repository estoques
@@ -78,7 +79,7 @@ export class EstoqueService {
         const estoquesDoCarro = await this.estoqueRepository.getEstoquesByCarroId(data.id_carro);
         const estoqueDuplicado = estoquesDoCarro.some(estoque => estoque.id_estoque !== id);
         if (estoqueDuplicado) {
-            throw new Error('Já existe estoque para este carro');
+            throw new ConflictError('Já existe estoque para este carro');
         }
 
         const estoqueAtualizado = new Estoque(id, data.id_carro, data.quantidade, data.localizacao_patio, data.data_entrada);
@@ -89,7 +90,7 @@ export class EstoqueService {
     public async removerEstoque(id: number): Promise<Estoque> {
         const estoqueExistente = await this.estoqueRepository.getEstoqueById(id);
         if (!estoqueExistente) {
-            throw new Error('Estoque não encontrado');
+            throw new NotFoundError('Estoque não encontrado');
         }
         await this.estoqueRepository.deleteEstoque(id);
         return estoqueExistente;
@@ -97,32 +98,32 @@ export class EstoqueService {
 
     private validaCamposObrigatorios(data: any): void {
         if (data.id_carro === undefined || data.id_carro === null) {
-            throw new Error('Campo id_carro é obrigatório');
+            throw new ValidationError('Campo id_carro é obrigatório');
         }
         if (data.quantidade === undefined || data.quantidade === null) {
-            throw new Error('Campo quantidade é obrigatório');
+            throw new ValidationError('Campo quantidade é obrigatório');
         }
         if (!data.localizacao_patio) {
-            throw new Error('Campo localizacao_patio é obrigatório');
+            throw new ValidationError('Campo localizacao_patio é obrigatório');
         }
         if (!data.data_entrada) {
-            throw new Error('Campo data_entrada é obrigatório');
+            throw new ValidationError('Campo data_entrada é obrigatório');
         }
     }
 
     private validaQuantidade(quantidade: number): void {
         if (typeof quantidade !== 'number' || !Number.isInteger(quantidade) || quantidade < 0) {
-            throw new Error('Campo quantidade deve ser um número inteiro maior ou igual a zero');
+            throw new ValidationError('Campo quantidade deve ser um número inteiro maior ou igual a zero');
         }
     }
 
     private validaDataEntrada(data_entrada: string): void {
         const data = new Date(data_entrada);
         if (isNaN(data.getTime())) {
-            throw new Error('Campo data_entrada deve ser uma data válida');
+            throw new ValidationError('Campo data_entrada deve ser uma data válida');
         }
         if (data > new Date()) {
-            throw new Error('Campo data_entrada não pode ser uma data futura');
+            throw new ValidationError('Campo data_entrada não pode ser uma data futura');
         }
     }
 }

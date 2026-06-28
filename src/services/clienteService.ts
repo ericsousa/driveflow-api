@@ -2,6 +2,7 @@ import { Cliente } from '../models/Cliente';
 import { NotaFiscal } from '../models/NotaFiscal';
 import { ClienteRepository } from '../repositories/clienteRepository';
 import { NotaFiscalRepository } from '../repositories/notaFiscalRepository';
+import { ValidationError, NotFoundError, ConflictError, BusinessError } from '../errors/AppError';
 
 export class ClienteService {
 
@@ -15,7 +16,7 @@ export class ClienteService {
     public async buscarClientePorId(id: number): Promise<Cliente> {
         const cliente = await this.clienteRepository.getClienteById(id);
         if (!cliente) {
-            throw new Error('Cliente não encontrado');
+            throw new NotFoundError('Cliente não encontrado');
         }
         return cliente;
     }
@@ -23,7 +24,7 @@ export class ClienteService {
     public async listarNotasFiscaisPorClienteId(id_cliente: number): Promise<NotaFiscal[]> {
         const clienteExistente = await this.clienteRepository.getClienteById(id_cliente);
         if (!clienteExistente) {
-            throw new Error('Cliente não encontrado');
+            throw new NotFoundError('Cliente não encontrado');
         }
         return this.notaFiscalRepository.getNotasFiscaisByClienteId(id_cliente);
     }
@@ -45,7 +46,7 @@ export class ClienteService {
         // Verifica se o cliente existe antes de tentar atualizar
         const clienteExistente = await this.clienteRepository.getClienteById(id);
         if (!clienteExistente) {
-            throw new Error('Cliente não encontrado');
+            throw new NotFoundError('Cliente não encontrado');
         }
 
         const cliente = new Cliente(id, data.nome, data.cpf, data.telefone, data.email, data.cidade);
@@ -58,13 +59,13 @@ export class ClienteService {
         // verifica se cliente existe antes de tentar excluir
         const clienteExistente = await this.clienteRepository.getClienteById(id);
         if (!clienteExistente) {
-            throw new Error('Cliente não encontrado');
+            throw new NotFoundError('Cliente não encontrado');
         }
 
         // verificar se cliente possui notas fiscais associadas antes de permitir a exclusão
         const notasFiscaisAssociadas = await this.notaFiscalRepository.getNotasFiscaisByClienteId(id);
         if (notasFiscaisAssociadas.length > 0) {
-            throw new Error('Não é possível excluir o cliente, existem notas fiscais associadas a ele');
+            throw new BusinessError('Não é possível excluir o cliente, existem notas fiscais associadas a ele');
         }
 
         await this.clienteRepository.deleteCliente(id);
@@ -73,7 +74,7 @@ export class ClienteService {
 
     private validarCamposObrigatorios(cliente: any): void {
         if (!cliente.nome || !cliente.cpf || !cliente.telefone) {
-            throw new Error('Campos obrigatórios não preenchidos');
+            throw new ValidationError('Campos obrigatórios não preenchidos');
         }
     }
 
@@ -91,12 +92,12 @@ export class ClienteService {
         // Na criação, o parâmetro id não é envido
         // Então, se já existe um cliente com o mesmo CPF, é uma duplicidade
         if (id === undefined) {
-            throw new Error('CPF já cadastrado');
+            throw new ConflictError('CPF já cadastrado');
         }
 
         // Na atualização, só há conflito se o CPF encontrado pertencer a outro cliente
         if (clienteExistente.id_cliente !== id) {
-            throw new Error('CPF já cadastrado');
+            throw new ConflictError('CPF já cadastrado');
         }
     }
 }

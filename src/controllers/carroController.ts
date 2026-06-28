@@ -1,11 +1,16 @@
 import { CarroService } from '../services/carroService';
 import { Request, Response } from 'express';
+import { AppError } from '../errors/AppError';
 
 const carroService = new CarroService();
 
 export async function listarCarros(req: Request, res: Response): Promise<void> {
-    const carros = await carroService.listarCarros();
-    res.json(carros);
+    try {
+        const carros = await carroService.listarCarros();
+        res.json(carros);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 }
 
 export async function buscarCarroPorId(req: Request, res: Response): Promise<void> {
@@ -19,18 +24,21 @@ export async function buscarCarroPorId(req: Request, res: Response): Promise<voi
         const carro = await carroService.buscarCarroPorId(id);
         res.status(200).json(carro);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Carro não encontrado') {
-            res.status(404).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
 export async function buscarCarrosDisponiveis(req: Request, res: Response): Promise<void> {
-    const carrosDisponiveis = await carroService.buscarCarrosDisponiveis();
-    res.json(carrosDisponiveis);
+    try {
+        const carrosDisponiveis = await carroService.buscarCarrosDisponiveis();
+        res.json(carrosDisponiveis);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 }
 
 export async function criarCarro(req: Request, res: Response): Promise<void> {
@@ -39,12 +47,11 @@ export async function criarCarro(req: Request, res: Response): Promise<void> {
         const carroCriado = await carroService.criarCarro(data);
         res.status(201).json(carroCriado);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Placa já existe') {
-            res.status(409).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -58,18 +65,13 @@ export async function atualizarCarro(req: Request, res: Response): Promise<void>
     try {
         const carroAtualizado = await carroService.atualizarCarro(id, data);
         res.status(200).json(carroAtualizado);
-    } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Carro não encontrado') {
-            res.status(404).json({ error: message });
+   } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'Placa já existe') {
-            res.status(409).json({ error: message });
-            return;
-        }
-        res.status(400).json({ error: message });
-    }  
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 }
 
 export async function removerCarro(req: Request, res: Response): Promise<void> {
@@ -83,19 +85,10 @@ export async function removerCarro(req: Request, res: Response): Promise<void> {
         res.status(200).json(carroRemovido);
 
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Carro não encontrado') {
-            res.status(404).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'Não é possível excluir o carro, existem notas fiscais associadas a ele') {
-            res.status(422).json({ error: message });
-            return;
-        }
-        if (message === 'Não é possível excluir o carro, existem estoques associados a ele') {
-            res.status(422).json({ error: message });
-            return;
-        }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }

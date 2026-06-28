@@ -1,11 +1,16 @@
 import { VendedorService } from '../services/vendedorService';
 import { Request, Response } from 'express';
+import { AppError } from '../errors/AppError';
 
 const vendedorService = new VendedorService();
 
 export async function listarVendedores(req: Request, res: Response): Promise<void> {
-    const vendedores = await vendedorService.listarVendedores();
-    res.json(vendedores);
+    try {
+        const vendedores = await vendedorService.listarVendedores();
+        res.json(vendedores);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 }
 
 export async function buscarVendedorPorId(req: Request, res: Response): Promise<void> {
@@ -18,12 +23,11 @@ export async function buscarVendedorPorId(req: Request, res: Response): Promise<
         const vendedor = await vendedorService.buscarVendedorPorId(id);
         res.status(200).json(vendedor);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Vendedor não encontrado') {
-            res.status(404).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -36,13 +40,12 @@ export async function listarNotasFiscaisPorVendedor(req: Request, res: Response)
     try {
         const notasFiscais = await vendedorService.listarNotasFiscaisPorVendedorId(id);
         res.json(notasFiscais);
-    } catch (e: unknown) {
-        const message = (e as Error).message;
-        if (message === 'Vendedor não encontrado') {
-            res.status(404).json({ error: message });
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        res.status(400).json({ error: (e as Error).message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -52,14 +55,11 @@ export async function criarVendedor(req: Request, res: Response): Promise<void> 
         const vendedorCriado = await vendedorService.criarVendedor(data);
         res.status(201).json(vendedorCriado);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Matrícula já existe') {
-            res.status(409).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        // Comissão percentual inválida ou campo obrigatório não preenchido
-        // Entra no código 400, pois é um erro de validação dos dados enviados pelo cliente
-        res.status(400).json({ error: (error as Error).message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -74,16 +74,11 @@ export async function atualizarVendedor(req: Request, res: Response): Promise<vo
         const vendedorAtualizado = await vendedorService.atualizarVendedor(id, data);
         res.json(vendedorAtualizado);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Vendedor não encontrado') {
-            res.status(404).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'Matrícula já existe') {
-            res.status(409).json({ error: message });
-            return;
-        }
-        res.status(400).json({ error: (error as Error).message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }
 
@@ -98,15 +93,10 @@ export async function removerVendedor(req: Request, res: Response): Promise<void
         const vendedorRemovido = await vendedorService.removerVendedor(id);
         res.json(vendedorRemovido);
     } catch (error) {
-        const message = (error as Error).message;
-        if (message === 'Vendedor não encontrado') {
-            res.status(404).json({ error: message });
+        if (error instanceof AppError) {
+            res.status(error.status).json({ error: error.message });
             return;
         }
-        if (message === 'Não é possível excluir o vendedor, existem notas fiscais associadas a ele') {
-            res.status(422).json({ error: message });
-            return;
-        }
-        res.status(400).json({ error: message });
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 }

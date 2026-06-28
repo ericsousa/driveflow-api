@@ -14,12 +14,18 @@ export async function buscarCarroPorId(req: Request, res: Response): Promise<voi
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
-    const carro = await carroService.buscarCarroPorId(id);
-    if (!carro) {
-        res.status(404).json({ error: 'Carro não encontrado' });
-        return;
+    
+    try {
+        const carro = await carroService.buscarCarroPorId(id);
+        res.status(200).json(carro);
+    } catch (error) {
+        const message = (error as Error).message;
+        if (message === 'Carro não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
+        res.status(400).json({ error: message });
     }
-    res.json(carro);
 }
 
 export async function buscarCarrosDisponiveis(req: Request, res: Response): Promise<void> {
@@ -51,13 +57,13 @@ export async function atualizarCarro(req: Request, res: Response): Promise<void>
     const data = req.body;
     try {
         const carroAtualizado = await carroService.atualizarCarro(id, data);
-        if (carroAtualizado) {
-            res.status(200).json(carroAtualizado);
-        } else {
-            res.status(404).json({ error: 'Carro não encontrado' });
-        }
+        res.status(200).json(carroAtualizado);
     } catch (error) {
         const message = (error as Error).message;
+        if (message === 'Carro não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'Placa já existe') {
             res.status(409).json({ error: message });
             return;
@@ -74,17 +80,22 @@ export async function removerCarro(req: Request, res: Response): Promise<void> {
     }
     try {
         const carroRemovido = await carroService.removerCarro(id);
-        if (carroRemovido) {
-            res.status(200).json(carroRemovido);
-        } else {
-            res.status(404).json({ error: 'Carro não encontrado' });
-        }
+        res.status(200).json(carroRemovido);
+
     } catch (error) {
         const message = (error as Error).message;
+        if (message === 'Carro não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'Não é possível excluir o carro, existem notas fiscais associadas a ele') {
             res.status(422).json({ error: message });
             return;
-         }
+        }
+        if (message === 'Não é possível excluir o carro, existem estoques associados a ele') {
+            res.status(422).json({ error: message });
+            return;
+        }
         res.status(400).json({ error: message });
     }
 }

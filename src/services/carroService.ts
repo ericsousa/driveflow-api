@@ -13,32 +13,31 @@ export class CarroService {
         return this.carroRepository.getCarros();
     }
 
-    public async buscarCarroPorId(id: number): Promise<Carro | null> {
-        return this.carroRepository.getCarroById(id);
+    public async buscarCarroPorId(id: number): Promise<Carro> {
+        const carro = await this.carroRepository.getCarroById(id);
+        if (!carro) {
+            throw new Error('Carro não encontrado');
+        }
+        return carro;
     }
 
     public async buscarCarrosDisponiveis(): Promise<Carro[]> {
-
-        // Não é mais necessário percorrer o estoque para verificar a disponibilidade, 
-        // agora temos uma consulta SQL que retorna apenas os carros disponíveis 
-        // diretamente do banco de dados.
         return await this.carroRepository.getCarrosDisponiveis();
     }
 
     public async criarCarro(data: any): Promise<Carro> {
+        
         this.validaCamposObrigatorios(data);
-        // validar placa acessa banco de dados
-        // necessita de async/await caso contrario crasha a aplicação
-        // retornando erro diretamente no console, sem resposta para o usuário
-        await this.validaPlaca(data.placa); 
         this.validaAno(data.ano);
         this.validaPreco(data.preco);
+
+        await this.validaPlaca(data.placa); 
 
         const carro = new Carro(null, data.marca, data.modelo, data.ano, data.placa, data.preco, data.cor);
         return await this.carroRepository.addCarro(carro);
     }
 
-    public async atualizarCarro(id: number, data: any): Promise<Carro | null> {
+    public async atualizarCarro(id: number, data: any): Promise<Carro> {
         this.validaCamposObrigatorios(data);
         await this.validaPlaca(data.placa, id);
         this.validaAno(data.ano);
@@ -47,7 +46,7 @@ export class CarroService {
         // verifica se o carro existe antes de tentar atualizar
         const carroExistente = await this.carroRepository.getCarroById(id);
         if(!carroExistente) {
-            return null;
+            throw new Error('Carro não encontrado');
         }
         
         const carro = new Carro(id, data.marca, data.modelo, data.ano, data.placa, data.preco, data.cor);
@@ -55,7 +54,7 @@ export class CarroService {
         return carro;
     }
 
-    public async removerCarro(id: number): Promise<Carro | null> {
+    public async removerCarro(id: number): Promise<Carro> {
 
         // verifica se carro existe antes de tentar excluir
         const carroExistente = await this.carroRepository.getCarroById(id);

@@ -15,14 +15,17 @@ export async function buscarClientePorId(req: Request, res: Response): Promise<v
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
-
-    const cliente = await clienteService.buscarClientePorId(id);
-
-    if (!cliente) {
-        res.status(404).json({ error: 'Cliente não encontrado' });
-        return;
+    try {
+        const cliente = await clienteService.buscarClientePorId(id);
+        res.status(200).json(cliente);
+    } catch (error){
+        const message = (error as Error).message;
+        if (message === 'Cliente não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
+        res.status(400).json({ error: message });
     }
-    res.json(cliente);
 }
 
 export async function listarNotasFiscaisPorCliente(req: Request, res: Response): Promise<void> {
@@ -70,13 +73,13 @@ export async function atualizarCliente(req: Request, res: Response): Promise<voi
     const updatedCliente = req.body;    
     try {
         const clienteAtualizado = await clienteService.atualizarCliente(id, updatedCliente);
-        if (clienteAtualizado) {
-            res.json(clienteAtualizado);
-        } else {
-            res.status(404).json({ error: 'Cliente não encontrado' });
-        }
+        res.json(clienteAtualizado);
     } catch (e: unknown) {
         const message = (e as Error).message;   
+        if (message === 'Cliente não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'CPF já cadastrado') {
             res.status(409).json({ error: message });
             return;
@@ -95,15 +98,14 @@ export async function removerCliente(req: Request, res: Response): Promise<void>
 
     try {
         const clienteRemovido = await clienteService.removerCliente(id);
-        if (clienteRemovido) {
-            res.json(clienteRemovido);
-        } else {
-            res.status(404).json({ error: 'Cliente não encontrado' });
-        }
+        res.json(clienteRemovido);
     } catch (e: unknown) {
 
         const message = (e as Error).message;
-
+        if (message === 'Cliente não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'Não é possível excluir o cliente, existem notas fiscais associadas a ele') {
             res.status(422).json({ error: (e as Error).message });
             return;

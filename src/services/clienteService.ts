@@ -12,8 +12,12 @@ export class ClienteService {
         return this.clienteRepository.getClientes();
     }
 
-    public async buscarClientePorId(id: number): Promise<Cliente | null> {
-        return this.clienteRepository.getClienteById(id);
+    public async buscarClientePorId(id: number): Promise<Cliente> {
+        const cliente = await this.clienteRepository.getClienteById(id);
+        if (!cliente) {
+            throw new Error('Cliente não encontrado');
+        }
+        return cliente;
     }
 
     public async listarNotasFiscaisPorClienteId(id_cliente: number): Promise<NotaFiscal[]> {
@@ -33,7 +37,7 @@ export class ClienteService {
         return this.clienteRepository.addCliente(cliente);
     }
 
-    public async atualizarCliente(id: number, data: any): Promise<Cliente | null> {
+    public async atualizarCliente(id: number, data: any): Promise<Cliente> {
 
         this.validarCamposObrigatorios(data);
         await this.validarCpfDuplicado(data.cpf, id);
@@ -41,7 +45,7 @@ export class ClienteService {
         // Verifica se o cliente existe antes de tentar atualizar
         const clienteExistente = await this.clienteRepository.getClienteById(id);
         if (!clienteExistente) {
-            return null;
+            throw new Error('Cliente não encontrado');
         }
 
         const cliente = new Cliente(id, data.nome, data.cpf, data.telefone, data.email, data.cidade);
@@ -49,12 +53,12 @@ export class ClienteService {
         return cliente;
     }
 
-    public async removerCliente(id: number): Promise<Cliente | null> {
+    public async removerCliente(id: number): Promise<Cliente > {
 
         // verifica se cliente existe antes de tentar excluir
         const clienteExistente = await this.clienteRepository.getClienteById(id);
         if (!clienteExistente) {
-            return null;
+            throw new Error('Cliente não encontrado');
         }
 
         // verificar se cliente possui notas fiscais associadas antes de permitir a exclusão

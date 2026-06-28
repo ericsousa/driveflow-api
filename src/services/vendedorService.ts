@@ -12,8 +12,12 @@ export class VendedorService {
         return this.vendedorRepository.getVendedores();
     }
 
-    public async buscarVendedorPorId(id: number): Promise<Vendedor | null> {
-        return this.vendedorRepository.getVendedorById(id);
+    public async buscarVendedorPorId(id: number): Promise<Vendedor> {
+        const vendedor = await this.vendedorRepository.getVendedorById(id);
+        if (!vendedor) {
+            throw new Error('Vendedor não encontrado');
+        }
+        return vendedor;
     }
 
     public async listarNotasFiscaisPorVendedorId(id_vendedor: number): Promise<NotaFiscal[]> {
@@ -34,7 +38,7 @@ export class VendedorService {
         return this.vendedorRepository.addVendedor(vendedor);
     }
 
-    public async atualizarVendedor(id: number, data: any): Promise<Vendedor | null> {
+    public async atualizarVendedor(id: number, data: any): Promise<Vendedor> {
        
         this.validaCamposObrigatorios(data);
         await this.validaMatricula(data.matricula, id);
@@ -43,7 +47,7 @@ export class VendedorService {
         // Verifica se o vendedor existe antes de tentar atualizar
         const vendedorExistente = await this.vendedorRepository.getVendedorById(id);
         if (!vendedorExistente) {
-            return null;
+            throw new Error('Vendedor não encontrado');
         }
 
         const vendedor = new Vendedor(id, data.nome, data.matricula, data.comissao_percentual);
@@ -51,12 +55,12 @@ export class VendedorService {
         return vendedor;
     }
 
-    public async removerVendedor(id: number): Promise<Vendedor | null> {
+    public async removerVendedor(id: number): Promise<Vendedor> {
 
         // verifica se vendedor existe antes de tentar excluir
         const vendedorExistente = await this.vendedorRepository.getVendedorById(id);
         if (!vendedorExistente) {
-           return null;
+           throw new Error('Vendedor não encontrado');
         }
 
         // verificar se vendedor possui notas fiscais associadas antes de permitir a exclusão

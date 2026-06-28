@@ -55,7 +55,7 @@ export class EstoqueService {
         return this.estoqueRepository.addEstoque(estoque);
     }
 
-    public async atualizarEstoque(id: number, data: any): Promise<Estoque | null> {
+    public async atualizarEstoque(id: number, data: any): Promise<Estoque> {
         this.validaCamposObrigatorios(data);
         this.validaQuantidade(data.quantidade);
         this.validaDataEntrada(data.data_entrada);
@@ -82,14 +82,11 @@ export class EstoqueService {
         }
 
         const estoqueAtualizado = new Estoque(id, data.id_carro, data.quantidade, data.localizacao_patio, data.data_entrada);
-        const sucesso = await this.estoqueRepository.updateEstoque(id, estoqueAtualizado);
-        if (!sucesso) {
-            throw new Error('Estoque não encontrado');
-        }
+        await this.estoqueRepository.updateEstoque(id, estoqueAtualizado);
         return estoqueAtualizado;
     }
 
-    public async removerEstoque(id: number): Promise<Estoque | null> {
+    public async removerEstoque(id: number): Promise<Estoque> {
         const estoqueExistente = await this.estoqueRepository.getEstoqueById(id);
         if (!estoqueExistente) {
             throw new Error('Estoque não encontrado');

@@ -14,13 +14,17 @@ export async function buscarVendedorPorId(req: Request, res: Response): Promise<
         res.status(400).json({ error: 'ID inválido' });
         return;
     }
-
-    const vendedor = await vendedorService.buscarVendedorPorId(id);
-    if (!vendedor) {
-        res.status(404).json({ error: 'Vendedor não encontrado' });
-        return;
+    try {
+        const vendedor = await vendedorService.buscarVendedorPorId(id);
+        res.status(200).json(vendedor);
+    } catch (error) {
+        const message = (error as Error).message;
+        if (message === 'Vendedor não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
+        res.status(400).json({ error: message });
     }
-    res.json(vendedor);
 }
 
 export async function listarNotasFiscaisPorVendedor(req: Request, res: Response): Promise<void> {
@@ -68,13 +72,13 @@ export async function atualizarVendedor(req: Request, res: Response): Promise<vo
     const data = req.body;
     try {
         const vendedorAtualizado = await vendedorService.atualizarVendedor(id, data);
-        if (vendedorAtualizado) {
-            res.json(vendedorAtualizado);
-        } else {
-            res.status(404).json({ error: 'Vendedor não encontrado' });
-        }
+        res.json(vendedorAtualizado);
     } catch (error) {
         const message = (error as Error).message;
+        if (message === 'Vendedor não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'Matrícula já existe') {
             res.status(409).json({ error: message });
             return;
@@ -92,14 +96,13 @@ export async function removerVendedor(req: Request, res: Response): Promise<void
 
     try {
         const vendedorRemovido = await vendedorService.removerVendedor(id);
-        if (vendedorRemovido) {
-            res.json(vendedorRemovido);
-        } else {
-            res.status(404).json({ error: 'Vendedor não encontrado' });
-        }
+        res.json(vendedorRemovido);
     } catch (error) {
         const message = (error as Error).message;
-
+        if (message === 'Vendedor não encontrado') {
+            res.status(404).json({ error: message });
+            return;
+        }
         if (message === 'Não é possível excluir o vendedor, existem notas fiscais associadas a ele') {
             res.status(422).json({ error: message });
             return;

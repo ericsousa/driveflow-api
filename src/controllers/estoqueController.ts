@@ -79,11 +79,11 @@ export async function atualizarEstoque(req: Request, res: Response): Promise<voi
         res.status(200).json(estoqueAtualizado);
     } catch (error) {
         const message = (error as Error).message;
-        if (message === 'Estoque não encontrado') {
+        if (message === 'Carro não encontrado') {
             res.status(404).json({ error: message });
             return;
         }
-        if (message === 'Carro não encontrado') {
+        if (message === 'Estoque não encontrado') {
             res.status(404).json({ error: message });
             return;
         }
@@ -104,11 +104,7 @@ export async function removerEstoque(req: Request, res: Response): Promise<void>
 
     try {
         const estoqueRemovido = await estoqueService.removerEstoque(id);
-        if (estoqueRemovido) {
-            res.status(200).json(estoqueRemovido);
-        } else {
-            res.status(404).json({ error: 'Estoque não encontrado' });
-        }
+        res.status(200).json(estoqueRemovido);
     } catch (error) {
         const message = (error as Error).message;
         if (message === 'Estoque não encontrado') {

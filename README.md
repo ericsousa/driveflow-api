@@ -18,6 +18,12 @@ This project was created as part of a Web Programming assignment focused on MVC 
 - ✅ Protection against invalid removals when related records already exist.
 - ✅ Persistent storage in a MySQL database (data survives server restarts).
 
+## 📐 Architecture
+
+System design, layer responsibilities, the database ER diagram and the rationale
+behind each technical decision are documented in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## 🛠️ Technologies Used
 
 - **TypeScript**: Main language with static typing.
